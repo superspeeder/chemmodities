@@ -1,2 +1,5 @@
 # Ignore build output directory
 build
+
+.vscode
+output
