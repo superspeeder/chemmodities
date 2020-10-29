@@ -6,3 +6,6 @@ output
 .vsls.json
 
 game.zip
+
+engine/vendor/glfw
+engine/vendor/glm
