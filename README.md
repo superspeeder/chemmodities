@@ -16,4 +16,3 @@ The output goes into the `output` folder, which is zipped into `game.zip`
 
 library only build scripts.
 linux & osx build scripts.
-posted builds on github
