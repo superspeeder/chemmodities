@@ -1,5 +1,5 @@
 ![chemmodities](/doc/chem.png)
-# chemmodities
+# chemmodities (FUTURE BRANCH)
 Chemmodities True Version. Particle Simulated Chemistry inspired by Noita
 
 ## Building From Source

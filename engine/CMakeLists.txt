@@ -2,6 +2,8 @@ project(Engine LANGUAGES CXX)
 
 set(SOURCES
     src/Application.cpp
+    src/Window.cpp
+    src/Exceptions.cpp
 )
 
 set(GLAD_SOURCE

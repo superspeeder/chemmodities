@@ -1,8 +1,7 @@
-#include "Application.h"
+#include "Application.hpp"
 
 #include <iostream>
-#include <glm/vec3.hpp>
 
-Application::Application() {
+chengine::Application::Application() {
 
 }
