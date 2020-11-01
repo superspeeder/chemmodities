@@ -8,7 +8,8 @@ add_executable(Game ${SOURCES})
 
 target_include_directories(Game
     PRIVATE
-        ${PROJECT_SOURCE_DIR}/include
+
+    ${PROJECT_SOURCE_DIR}/include
 )
 
 target_link_libraries(Game

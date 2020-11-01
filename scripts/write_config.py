@@ -9,11 +9,16 @@ project_dir = os.path.join(*os.path.split(project_dir)[:-1])
 
 programfiles86 = "%PROGRAMFILES(x86)%"
 
+isad = False
+
 if (os.path.isfile(os.path.join(project_dir,'sid'))):
     with open(os.path.join(project_dir,'sid'), 'r') as f:
         if f.read() == "andy":
             programfiles86 = "D:\\Program Files (x86)"
+            isad = True
 
+
+d = "D" if isad else "C"
 
 def downloadcmake():
     url = "https://github.com/Kitware/CMake/releases/download/v3.19.0-rc2/cmake-3.19.0-rc2-win64-x64.zip"
@@ -99,11 +104,15 @@ build_config = check(bc)
 
 
 config_file = f"""
+cd "D:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\"
+call "{d}:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\Common7\\Tools\\VsDevCmd.bat"
+cd "{project_dir}\\scripts"
+
 SET "CMAKE_LOCATION={cmake_location}"
 SET "PROJECTDIR={project_dir}"
 SET "BUILDCONFIG={build_config}"
 SET "_7ZIP_EXE={_7z_location}"
-SET "PROGRAMFILES86={programfiles86}""
+SET "PROGRAMFILES86={programfiles86}"
 """
 
 with open(os.path.join(project_dir, "scripts", "config.bat"), "w+") as f:
