@@ -15,3 +15,7 @@ target_include_directories(Game
 target_link_libraries(Game
     chemmodities::engine
 )
+
+add_custom_command(TARGET Game POST_BUILD 
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        COMMAND cmd /c ${CMAKE_SOURCE_DIR}/scripts/pb.bat)

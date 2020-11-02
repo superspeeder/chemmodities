@@ -14,3 +14,5 @@ add_subdirectory(game)
 install(TARGETS Game RUNTIME DESTINATION ${PROJECT_SOURCE_DIR}/output)
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/res DESTINATION ${PROJECT_SOURCE_DIR}/output)
 
+
+
