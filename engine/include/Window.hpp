@@ -40,76 +40,84 @@ namespace chengine {
         GLFWmonitor* m_Monitor;
         Window* m_Share;
 
-        void createWindow(); // implemented
+        // Window setup
+        void createWindow();
+        void applySettings(WindowSettings settings);
 
         static std::unordered_map<GLFWwindow*,Window*> s_ReverseLookupMap;
 
     public:
-        static void applySettings(WindowSettings settings); // implemented
+        // Static Functions
+        static void init();
+        static Window* reverseLookup(GLFWwindow* window);
 
-        static void init(); // implemented
+        // Constructors
+        Window(uint16_t width, uint16_t height, std::string title, WindowSettings settings);
+        Window(uint16_t width, uint16_t height, std::string title, WindowSettings settings, GLFWmonitor* monitor);
+        Window(uint16_t width, uint16_t height, std::string title, WindowSettings settings, Window* share);
+        Window(uint16_t width, uint16_t height, std::string title, WindowSettings settings, GLFWmonitor* monitor, Window* share);
 
-        static Window* reverseLookup(GLFWwindow* window); // implemented
+        // Special Functions and Operators
+        ~Window();
 
-        Window(uint16_t width, uint16_t height, std::string title, WindowSettings settings); // implemented
-        Window(uint16_t width, uint16_t height, std::string title, WindowSettings settings, GLFWmonitor* monitor); // implemented
-        Window(uint16_t width, uint16_t height, std::string title, WindowSettings settings, Window* share); // implemented
-        Window(uint16_t width, uint16_t height, std::string title, WindowSettings settings, GLFWmonitor* monitor, Window* share); // implemented
+        // Window Setup
+        void makeWindowedFullscreen();
+        void makeWindowlessFullscreen();
 
-        ~Window(); // implemented
+        // Basic Drawing
+        void swapBuffers();
+        void setSwapInterval(int swap_interval);
 
+        // Basic Events
+        void pollEvents();
+        void waitEvents();
+        void waitEventsTimeout(double timeout);
+        void postEmptyEvent();
 
-        void pollEvents(); // implemented
-        void waitEvents(); // implemented
-        void waitEventsTimeout(double timeout); // implemented
-        void postEmptyEvent(); // implemented
+        // Basic Input
+        void setInputMode(Input::Mode mode, int value);
 
-        void setKeyCallback(GLFWkeyfun function); // implemented
-        Input::State getKeyState(int key); // implemented
+        // Key Input
+        void setKeyCallback(GLFWkeyfun function);
+        Input::State getKeyState(int key);
 
-        void setCharCallback(GLFWcharfun callback); // implemented
+        void setCharCallback(GLFWcharfun callback);
 
-        void setCursorPosCallback(GLFWcursorposfun callback); // implemented
-        void setCursorEnterCallback(GLFWcursorenterfun callback); // implemented
-        void getCursorPos(double *x, double *y); // implemented
-        int getWindowAttrib(Input::WindowAttrib attrib); // implemented
+        void enableStickyKeys();
+        void disableStickyKeys();
 
-        void setMouseButtonCallback(GLFWmousebuttonfun callback); // implemented 
+        void readLockKeyMods();
+        void ignoreLockKeyMods();
+
+        // Mouse Input
+        void setMouseButtonCallback(GLFWmousebuttonfun callback); 
         Input::State getMouseButton(Input::MouseButton button);
+        void enableStickyMouseButtons();
+        void disableStickyMouseButtons();
 
+        void setCursorEnterCallback(GLFWcursorenterfun callback);
 
+        void setCursorPosCallback(GLFWcursorposfun callback);
+        void getCursorPos(double *x, double *y);
 
+        void setScrollCallback(GLFWscrollfun callback);
 
-        void setInputMode(Input::Mode mode, int value); // implemented
-        
-        void enableStickyKeys(); // implemented
-        void disableStickyKeys(); // implemented
+        void setCursorMode(Input::CursorMode mode);
+        void setCursor(Cursor* cursor);
 
-        void enableStickyMouseButtons(); // implemented
-        void disableStickyMouseButtons(); // implemented
-
-        void readLockKeyMods(); // implemented
-        void ignoreLockKeyMods(); // implemented
-
-        void setCursorMode(Input::CursorMode mode); // implemented
-
-        void enableRawMouseMotion(); // implemented
-        void disableRawMouseMotion(); // implemented
-
-        void swapBuffers(); // implemented
-        void setSwapInterval(int swap_interval); // implemented
-
-        void makeWindowedFullscreen(); // implemented
-        void makeWindowlessFullscreen(); // implemented
-
-        void setCursor(Cursor* cursor); // implemented
-
+        void enableRawMouseMotion();
+        void disableRawMouseMotion();
         bool isRawMouseMotionSupported();
+
+        // Basic Window Info
+        int getWindowAttrib(Input::WindowAttrib attrib);
 
     };
 
     namespace Input {
         
+
+        // Input Enums
         enum State {
             Press = GLFW_PRESS,
             Release = GLFW_RELEASE,
@@ -155,19 +163,84 @@ namespace chengine {
             Button8 = GLFW_MOUSE_BUTTON_8,
         };
 
-        
+        enum HatState {
+            Centered = GLFW_HAT_CENTERED,
+            Up = GLFW_HAT_UP,
+            Right = GLFW_HAT_RIGHT,
+            Down = GLFW_HAT_DOWN,
+            Left = GLFW_HAT_LEFT,
+            RightUp = GLFW_HAT_RIGHT_UP,
+            RightDown = GLFW_HAT_RIGHT_DOWN,
+            LeftUp = GLFW_HAT_LEFT_UP,
+            LeftDown = GLFW_HAT_LEFT_DOWN
+        };
+
+        // Joystick Values Structs
+        struct JoyAxisValues {
+            int count;
+            const float* values;
+
+            const float operator[](unsigned int axis) {
+                if (axis < count) {
+                    return values[axis];
+                }
+                return 0;
+            };
+        };
+
+        struct JoyButtonValues {
+            int count;
+            const unsigned char* buttons;
+            
+            const State operator[](unsigned int b_id) {
+                if (b_id < count) {
+                    return static_cast<State>(buttons[b_id]);
+                }
+                return State::Release;
+            };
+        };
+
+        struct JoyHatValues {
+            int count;
+            const unsigned char* hats;
+
+            const HatState operator[](unsigned int hat_id) {
+                if (hat_id < count) {
+                    return static_cast<HatState>(hats[hat_id]);
+                }
+                return HatState::Centered;
+            };
+        };
+
+        // Basic windowless input functions
         const int getScancode(int key);
         const char* getKeyName(int key, int scancode);
+
+        class Joystick {
+        private:
+            unsigned int m_JoystickId;
+        public:
+            static bool isJoystickPresent(unsigned int id);
+
+            Joystick(unsigned int id);
+
+            JoyAxisValues getAxes();
+            JoyButtonValues getButtons();
+            JoyHatValues getHats();
+            
+            const char* getName();
+        };
     }
 
 
+    // Cursor Class
     class Cursor {
     private:
         GLFWcursor* m_Cursor;
 
         friend void Window::setCursor(Cursor* cursor);
     public:
-        Cursor(unsigned char* pixels, int width, int height);
+        Cursor(unsigned char* pixels, int width, int height, int x_hot, int y_hot);
         Cursor(int standard_type);
 
         ~Cursor();
