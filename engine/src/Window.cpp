@@ -11,6 +11,10 @@ void chengine::Window::init() {
     }
 }
 
+void chengine::Window::terminate() {
+    glfwTerminate();
+}
+
 chengine::Window* chengine::Window::reverseLookup(GLFWwindow* window) {
     return s_ReverseLookupMap[window];
 }
@@ -496,6 +500,15 @@ void chengine::Window::setUserPointer(void* ptr) {
 void* chengine::Window::getUserPointer() {
     return glfwGetWindowUserPointer(m_Window);
 }
+
+void chengine::Window::makeContextCurrent() {
+    glfwMakeContextCurrent(m_Window);
+}
+
+chengine::Window* chengine::Window::getCurrentContext() {
+    return reverseLookup(glfwGetCurrentContext());
+}
+
 
 // Basic windowless input functions
 

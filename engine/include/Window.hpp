@@ -192,11 +192,12 @@ namespace chengine {
         void createWindow();
         void applySettings(WindowSettings settings);
 
-        static std::unordered_map<GLFWwindow*,Window*> s_ReverseLookupMap;
+        inline static std::unordered_map<GLFWwindow*,Window*> s_ReverseLookupMap;
 
     public:
         // Static Functions
         static void init();
+        static void terminate();
         static Window* reverseLookup(GLFWwindow* window);
 
         // Constructors

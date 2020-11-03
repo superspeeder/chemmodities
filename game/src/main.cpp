@@ -2,8 +2,10 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <Application.hpp>
 #include <glm/vec3.hpp>
+
+#include <Application.hpp>
+#include <Window.hpp>
 
 
 void APIENTRY glDebugOutput(GLenum source, 
@@ -53,57 +55,37 @@ void APIENTRY glDebugOutput(GLenum source,
     std::cout << std::endl;
 }
 
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    chengine::Window* w = chengine::Window::reverseLookup(window);
+    glViewport(0,0,width,height);
+}
+
+
 
 int main() {
+    chengine::Window::init();
+    chengine::WindowSettings settings;
 
-    GLFWwindow* window;
 
-    if (!glfwInit()) {
-        std::cerr << "FUCK GLFW DID THE EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEee\n";
-        return -1;
+    chengine::Window* window = new chengine::Window(800,800,"Noises",settings);
+
+    window->makeContextCurrent();
+    window->initGLAD();
+
+    glClearColor(1.0f,1.0f,1.0f,0);
+
+    window->setFramebufferSizeCallback(framebuffer_size_callback);
+
+    while (!window->shouldWindowClose()) {
+        window->pollEvents();
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+        window->swapBuffers();
     }
 
-    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);  
-    window = glfwCreateWindow(800, 800, "Fuck Glasser 2.0", NULL, NULL);
+    chengine::Window::terminate();
 
-    if (!window) {
-        glfwTerminate();
-        std::cerr << "FUCK GLFW FUCKED ITS WINDOW UP THE ASS\n";
-        return -1;
-    }
-
-    glfwMakeContextCurrent(window);
-
-    if(!gladLoadGL()) {
-        glfwTerminate();
-        std::cerr << "GLAD IS FUCKEROO\n";
-    }
-
-    int flags; glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
-    if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
-    {
-        glEnable(GL_DEBUG_OUTPUT);
-        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS); 
-        glDebugMessageCallback(glDebugOutput, nullptr);
-        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-    } 
-
-    int fuck = 0;
-
-
-    while (!glfwWindowShouldClose(window)) {
-        fuck++;
-        glClear(GL_COLOR_BUFFER_BIT);
-        glClearColor(
-            (float)(fuck % 200) / 200.0f,
-            (float)(fuck % 100) / 100.0f,
-            (float)(fuck %  50) /  50.0f,
-            1);
-
-        glfwPollEvents();
-        glfwSwapBuffers(window);
-    }
-
-    glfwTerminate();
     return 0;
 }
