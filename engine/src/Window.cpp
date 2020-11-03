@@ -1,6 +1,8 @@
 #include "Window.hpp"
 #include "Exceptions.hpp"
-
+#include <string>
+#include <cinttypes>
+#include <glad/glad.h>
 
 // Window Static
 void chengine::Window::init() {
@@ -77,6 +79,15 @@ void chengine::Window::createWindow() {
     }
 
     s_ReverseLookupMap[m_Window] = this;
+}
+
+void chengine::Window::initGLAD() {
+    gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
+
+    if(!gladLoadGL()) {
+        glfwTerminate();
+        std::cerr << "GLAD IS FUCKEROO\n";
+    }
 }
 
 void chengine::Window::applySettings(WindowSettings settings) {
@@ -287,10 +298,203 @@ void chengine::Window::setCursor(chengine::Cursor* cursor) {
     glfwSetCursor(m_Window, cursor->m_Cursor);
 }
 
+// Clipboard
+const char* chengine::Window::getClipboardString() {
+    return glfwGetClipboardString(m_Window);
+}
+
+void chengine::Window::setClipboardString(const char* string) {
+    glfwSetClipboardString(m_Window, string);
+}
+
 // Basic Window Info
 
 int chengine::Window::getWindowAttrib(chengine::Input::WindowAttrib attrib) {
     return glfwGetWindowAttrib(m_Window, static_cast<int>(attrib));
+}
+
+void chengine::Window::setWindowAttrib(Input::WindowAttrib attrib, int value) {
+    glfwSetWindowAttrib(m_Window, static_cast<int>(attrib), value);
+}
+
+bool chengine::Window::shouldWindowClose() {
+    return glfwWindowShouldClose(m_Window);
+}
+
+void chengine::Window::closeWindow() {
+    setWindowClose(true);
+}
+
+void chengine::Window::setWindowClose(bool value) {
+    glfwSetWindowShouldClose(m_Window, value);
+}
+
+void chengine::Window::setWindowCloseCallback(GLFWwindowclosefun callback) {
+    glfwSetWindowCloseCallback(m_Window, callback);
+}
+
+void chengine::Window::resizeWindow(int x, int y) {
+    glfwSetWindowSize(m_Window, x, y);
+}
+
+void chengine::Window::setWindowResizeCallback(GLFWwindowsizefun callback) {
+    glfwSetWindowSizeCallback(m_Window, callback);
+}
+
+glm::vec2 chengine::Window::getWindowSize() {
+    glm::ivec2 s;
+    getWindowSize(&(s.x), &(s.y));
+    return s;
+}
+
+void chengine::Window::getWindowSize(int *x, int *y) {
+    glfwGetWindowSize(m_Window,x,y);
+}
+
+void chengine::Window::getWindowFrameSize(int *left, int *top, int *right, int *bottom) {
+    glfwGetWindowFrameSize(m_Window, left, top, right, bottom);
+}
+
+void chengine::Window::setFramebufferSizeCallback(GLFWframebuffersizefun callback) {
+    glfwSetFramebufferSizeCallback(m_Window, callback);
+}
+
+glm::vec2 chengine::Window::getFramebufferSize() {
+    glm::ivec2 s;
+    getFramebufferSize(&(s.x),&(s.y));
+    return s;
+}
+
+void chengine::Window::getFramebufferSize(int *x, int *y) {
+    glfwGetFramebufferSize(m_Window,x,y);
+}
+
+void chengine::Window::getContentScale(float *x, float *y) {
+    glfwGetWindowContentScale(m_Window,x,y);
+}
+
+glm::vec2 chengine::Window::getContentScale() {
+    glm::vec2 s;
+    getContentScale(&(s.x), &(s.y));
+    return s;
+}
+
+void chengine::Window::setContentScaleCallback(GLFWwindowcontentscalefun callback) {
+    glfwSetWindowContentScaleCallback(m_Window, callback);
+}
+
+void chengine::Window::setWindowSizeLimits(int x_min, int y_min, int x_max, int y_max) {
+    glfwSetWindowSizeLimits(m_Window, x_min,y_min,x_max,y_max);
+}
+
+void chengine::Window::setAspectRatio(int x, int y) {
+    glfwSetWindowAspectRatio(m_Window, x,y);
+}
+
+void chengine::Window::setWindowPos(int x, int y) {
+    glfwSetWindowPos(m_Window, x,y);
+}
+
+void chengine::Window::getWindowPos(int *x, int *y) {
+    glfwGetWindowPos(m_Window, x,y);
+}
+
+glm::vec2 chengine::Window::getWindowPos() {
+    glm::ivec2 p;
+    getWindowPos(&(p.x),&(p.y));
+    return p;
+}
+
+void chengine::Window::setWindowPosCallback(GLFWwindowposfun callback) {
+    glfwSetWindowPosCallback(m_Window, callback);
+}
+
+void chengine::Window::setWindowTitle(const char* title) {
+    glfwSetWindowTitle(m_Window, title);
+}
+
+void chengine::Window::setIcon(GLFWimage* icons, int count) {
+    glfwSetWindowIcon(m_Window, count, icons);
+}
+
+GLFWmonitor* chengine::Window::getMonitor() {
+    return glfwGetWindowMonitor(m_Window);
+}
+
+const GLFWvidmode* chengine::Window::getVidMode() {
+    return glfwGetVideoMode(getMonitor());
+}
+
+void chengine::Window::setWindowMonitor(GLFWmonitor* monitor, int xpos, int ypos, int width, int height, int refreshrate) {
+    glfwSetWindowMonitor(m_Window, monitor, xpos,ypos, width,height, refreshrate);
+}
+
+void chengine::Window::restoreWindow() {
+    glfwRestoreWindow(m_Window);
+}
+
+void chengine::Window::iconify() {
+    glfwIconifyWindow(m_Window);
+}
+
+void chengine::Window::setIconifyCallback(GLFWwindowiconifyfun callback) {
+    glfwSetWindowIconifyCallback(m_Window, callback);
+}
+
+void chengine::Window::maximize() {
+    glfwMaximizeWindow(m_Window);
+}
+
+void chengine::Window::setMaximizeCallback(GLFWwindowmaximizefun callback) {
+    glfwSetWindowMaximizeCallback(m_Window, callback);
+}
+
+void chengine::Window::hide() {
+    glfwHideWindow(m_Window);
+}
+
+void chengine::Window::show() {
+    glfwShowWindow(m_Window);
+}
+
+bool chengine::Window::isVisible() {
+    return getWindowAttrib(chengine::Input::WindowAttrib::Visible);
+}
+
+void chengine::Window::focus() {
+    glfwFocusWindow(m_Window);
+}
+
+void chengine::Window::setFocusCallback(GLFWwindowfocusfun callback) {
+    glfwSetWindowFocusCallback(m_Window,callback);
+}
+
+bool chengine::Window::isFocused() {
+    return getWindowAttrib(chengine::Input::WindowAttrib::Focused);
+}
+
+void chengine::Window::requestAttention() {
+    glfwRequestWindowAttention(m_Window);
+}
+
+void chengine::Window::setRefreshCallback(GLFWwindowrefreshfun callback) {
+    glfwSetWindowRefreshCallback(m_Window, callback);
+}
+
+void chengine::Window::setOpacity(float opacity) {
+    glfwSetWindowOpacity(m_Window,opacity);
+}
+
+float chengine::Window::getOpacity() {
+    return glfwGetWindowOpacity(m_Window);
+}
+
+void chengine::Window::setUserPointer(void* ptr) {
+    glfwSetWindowUserPointer(m_Window, ptr);
+}
+
+void* chengine::Window::getUserPointer() {
+    return glfwGetWindowUserPointer(m_Window);
 }
 
 // Basic windowless input functions
@@ -302,6 +506,33 @@ const int chengine::Input::getScancode(int key) {
 const char* chengine::Input::getKeyName(int key, int scancode) {
     return glfwGetKeyName(key, scancode);
 }
+
+double chengine::Input::getTime() {
+    return glfwGetTime();
+}
+
+void chengine::Input::setTime(double newTime) {
+    glfwSetTime(newTime);
+}
+
+uint64_t chengine::Input::getTimerValue() {
+    return glfwGetTimerFrequency();
+}
+
+uint64_t chengine::Input::getTimerFrequency() {
+    return glfwGetTimerFrequency();
+}
+
+// System Clipboard
+const char* chengine::Input::getSystemClipboardString() {
+    return glfwGetClipboardString(NULL);
+}
+
+void chengine::Input::setSystemClipboardString(const char* string) {
+    glfwSetClipboardString(NULL, string);
+}
+
+        
 
 // Cursor Class
 
@@ -327,16 +558,46 @@ chengine::Input::Joystick::Joystick(unsigned int id) : m_JoystickId(id) {
 }
 
 chengine::Input::JoyAxisValues chengine::Input::Joystick::getAxes() {
-    
+    JoyAxisValues values;
+    values.values = glfwGetJoystickAxes(m_JoystickId, &(values.count));
+    return values;
 }
 
 chengine::Input::JoyButtonValues chengine::Input::Joystick::getButtons() {
-
+    JoyButtonValues values;
+    values.buttons = glfwGetJoystickButtons(m_JoystickId, &(values.count));
+    return values;
 }
 
 chengine::Input::JoyHatValues chengine::Input::Joystick::getHats() {
-
+    JoyHatValues values;
+    values.hats = glfwGetJoystickHats(m_JoystickId, &(values.count));
+    return values;
 }
 
 
-const char* getName();
+const char* chengine::Input::Joystick::getName() {
+    return glfwGetJoystickName(m_JoystickId);
+}
+
+void chengine::Input::Joystick::setConfigurationCallback(GLFWjoystickfun callback) {
+    glfwSetJoystickCallback(callback);
+}
+
+// Gamepad Class
+
+chengine::Input::Gamepad::Gamepad(unsigned int id) : chengine::Input::Joystick::Joystick(id) {
+    if (!glfwJoystickIsGamepad(id)) {
+        throw glfw_error(("Joystick " + std::to_string(id) + " is not a valid gamepad").c_str());
+    }
+}
+
+const char* chengine::Input::Gamepad::getName() {
+    return glfwGetGamepadName(m_JoystickId);
+}
+
+GLFWgamepadstate chengine::Input::Gamepad::getState() {
+    GLFWgamepadstate ret;
+    glfwGetGamepadState(m_JoystickId, &ret);
+    return ret;
+}

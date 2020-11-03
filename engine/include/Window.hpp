@@ -4,8 +4,156 @@
 #include <string>
 #include <cinttypes>
 #include <unordered_map>
+#include <glm/vec2.hpp>
 
 namespace chengine {
+    class Cursor {
+        friend class Window;
+        private:
+            GLFWcursor* m_Cursor;
+    
+        public:
+            Cursor(unsigned char* pixels, int width, int height, int x_hot, int y_hot);
+            Cursor(int standard_type);
+    
+            ~Cursor();
+    };
+    namespace Input {
+        // Input Enums
+        enum State {
+            Press = GLFW_PRESS,
+            Release = GLFW_RELEASE,
+            Repeat = GLFW_REPEAT
+        };
+
+        enum Mode {
+            Cursor = GLFW_CURSOR,
+            StickyKeys = GLFW_STICKY_KEYS,
+            StickyMouseButtons = GLFW_STICKY_MOUSE_BUTTONS,
+            LockKeyMods = GLFW_LOCK_KEY_MODS,
+            RawMouseMotion = GLFW_RAW_MOUSE_MOTION
+        };
+
+        enum CursorMode {
+            Normal = GLFW_CURSOR_NORMAL,
+            Hidden = GLFW_CURSOR_HIDDEN,
+            Disabled = GLFW_CURSOR_DISABLED
+        };
+
+        enum WindowAttrib {
+            Focused = GLFW_FOCUSED,
+            Iconified = GLFW_ICONIFIED,
+            Maximized = GLFW_MAXIMIZED,
+            Hovered = GLFW_HOVERED,
+            Visible = GLFW_VISIBLE,
+            Resizable = GLFW_RESIZABLE,
+            Decorated = GLFW_DECORATED,
+            AutoIconify = GLFW_AUTO_ICONIFY,
+            Floating = GLFW_FLOATING,
+            TransparentFramebuffer = GLFW_TRANSPARENT_FRAMEBUFFER,
+            FocusOnShow = GLFW_FOCUS_ON_SHOW
+        };
+
+        enum MouseButton {
+            Button1 = GLFW_MOUSE_BUTTON_1,
+            Button2 = GLFW_MOUSE_BUTTON_2,
+            Button3 = GLFW_MOUSE_BUTTON_3,
+            Button4 = GLFW_MOUSE_BUTTON_4,
+            Button5 = GLFW_MOUSE_BUTTON_5,
+            Button6 = GLFW_MOUSE_BUTTON_6,
+            Button7 = GLFW_MOUSE_BUTTON_7,
+            Button8 = GLFW_MOUSE_BUTTON_8,
+        };
+
+        enum HatState {
+            HatCentered = GLFW_HAT_CENTERED,
+            HatUp = GLFW_HAT_UP,
+            HatRight = GLFW_HAT_RIGHT,
+            HatDown = GLFW_HAT_DOWN,
+            HatLeft = GLFW_HAT_LEFT,
+            HatRightUp = GLFW_HAT_RIGHT_UP,
+            HatRightDown = GLFW_HAT_RIGHT_DOWN,
+            HatLeftUp = GLFW_HAT_LEFT_UP,
+            HatLeftDown = GLFW_HAT_LEFT_DOWN
+        };
+
+        // Joystick Values Structs
+        struct JoyAxisValues {
+            int count;
+            const float* values;
+
+            const float operator[](int axis) {
+                if (axis < count) {
+                    return values[axis];
+                }
+                return 0;
+            };
+        };
+
+        struct JoyButtonValues {
+            int count;
+            const unsigned char* buttons;
+            
+            const State operator[](int b_id) {
+                if (b_id < count) {
+                    return static_cast<State>(buttons[b_id]);
+                }
+                return State::Release;
+            };
+        };
+
+        struct JoyHatValues {
+            int count;
+            const unsigned char* hats;
+
+            const HatState operator[](int hat_id) {
+                if (hat_id < count) {
+                    return static_cast<HatState>(hats[hat_id]);
+                }
+                return HatState::HatCentered;
+            };
+        };
+
+        // Basic windowless input functions
+        const int getScancode(int key);
+        const char* getKeyName(int key, int scancode);
+
+        double getTime();
+        void setTime(double newTime);
+        
+        uint64_t getTimerValue();
+        uint64_t getTimerFrequency();
+
+        const char* getSystemClipboardString(); // proper paste
+        void setSystemClipboardString(const char* string); // proper copy/cut
+
+
+        class Joystick {
+        protected:
+            unsigned int m_JoystickId;
+        public:
+            static bool isJoystickPresent(unsigned int id);
+
+            Joystick(unsigned int id);
+
+            JoyAxisValues getAxes();
+            JoyButtonValues getButtons();
+            JoyHatValues getHats();
+            
+            const char* getName();
+
+            static void setConfigurationCallback(GLFWjoystickfun callback);
+        };
+
+        class Gamepad : public Joystick {
+        public:
+            Gamepad(unsigned int id);
+            const char* getName();
+
+            GLFWgamepadstate getState();
+        };
+    }
+
     enum FullScreenMode {
         WINDOWED, WINDOWLESS
     };
@@ -63,6 +211,7 @@ namespace chengine {
         // Window Setup
         void makeWindowedFullscreen();
         void makeWindowlessFullscreen();
+        void initGLAD();
 
         // Basic Drawing
         void swapBuffers();
@@ -75,7 +224,7 @@ namespace chengine {
         void postEmptyEvent();
 
         // Basic Input
-        void setInputMode(Input::Mode mode, int value);
+        void setInputMode(chengine::Input::Mode mode, int value);
 
         // Key Input
         void setKeyCallback(GLFWkeyfun function);
@@ -99,6 +248,7 @@ namespace chengine {
 
         void setCursorPosCallback(GLFWcursorposfun callback);
         void getCursorPos(double *x, double *y);
+        glm::vec2 getCursorPos();
 
         void setScrollCallback(GLFWscrollfun callback);
 
@@ -109,140 +259,86 @@ namespace chengine {
         void disableRawMouseMotion();
         bool isRawMouseMotionSupported();
 
-        // Basic Window Info
-        int getWindowAttrib(Input::WindowAttrib attrib);
+        // Path Drop Event
+        void setPathDropCallback(GLFWdropfun callback);
 
-    };
-
-    namespace Input {
+        // Clipboard
+        const char* getClipboardString();
+        void setClipboardString(const char* string);
         
 
-        // Input Enums
-        enum State {
-            Press = GLFW_PRESS,
-            Release = GLFW_RELEASE,
-            Repeat = GLFW_REPEAT
-        };
+        // Basic Window Info
+        int getWindowAttrib(Input::WindowAttrib attrib);
+        void setWindowAttrib(Input::WindowAttrib attrib, int value);
+        
+        bool shouldWindowClose();
+        void closeWindow();
+        void setWindowClose(bool value);
+        void setWindowCloseCallback(GLFWwindowclosefun callback);
 
-        enum Mode {
-            Cursor = GLFW_CURSOR,
-            StickyKeys = GLFW_STICKY_KEYS,
-            StickyMouseButtons = GLFW_STICKY_MOUSE_BUTTONS,
-            LockKeyMods = GLFW_LOCK_KEY_MODS,
-            RawMouseMotion = GLFW_RAW_MOUSE_MOTION
-        };
+        void resizeWindow(int x, int y);
+        void setWindowResizeCallback(GLFWwindowsizefun callback);
+        glm::vec2 getWindowSize();
+        void getWindowSize(int *x, int *y);
 
-        enum CursorMode {
-            Normal = GLFW_CURSOR_NORMAL,
-            Hidden = GLFW_CURSOR_HIDDEN,
-            Disabled = GLFW_CURSOR_DISABLED
-        };
+        void getWindowFrameSize(int *left, int *top, int *right, int *bottom);
 
-        enum WindowAttrib {
-            Focused = GLFW_FOCUSED,
-            Iconified = GLFW_ICONIFIED,
-            Maximized = GLFW_MAXIMIZED,
-            Hovered = GLFW_HOVERED,
-            Visible = GLFW_VISIBLE,
-            Resizable = GLFW_RESIZABLE,
-            Decorated = GLFW_DECORATED,
-            AutoIconify = GLFW_AUTO_ICONIFY,
-            Floating = GLFW_FLOATING,
-            TransparentFramebuffer = GLFW_TRANSPARENT_FRAMEBUFFER,
-            FocusOnShow = GLFW_FOCUS_ON_SHOW
-        };
+        void setFramebufferSizeCallback(GLFWframebuffersizefun callback);
+        glm::vec2 getFramebufferSize();
+        void getFramebufferSize(int *x, int *y);
 
-        enum MouseButton {
-            Left = GLFW_MOUSE_BUTTON_LEFT,
-            Right = GLFW_MOUSE_BUTTON_RIGHT,
-            Button3 = GLFW_MOUSE_BUTTON_3,
-            Button4 = GLFW_MOUSE_BUTTON_4,
-            Button5 = GLFW_MOUSE_BUTTON_5,
-            Button6 = GLFW_MOUSE_BUTTON_6,
-            Button7 = GLFW_MOUSE_BUTTON_7,
-            Button8 = GLFW_MOUSE_BUTTON_8,
-        };
+        void getContentScale(float *x, float *y);
+        glm::vec2 getContentScale();
+        void setContentScaleCallback(GLFWwindowcontentscalefun callback);
 
-        enum HatState {
-            Centered = GLFW_HAT_CENTERED,
-            Up = GLFW_HAT_UP,
-            Right = GLFW_HAT_RIGHT,
-            Down = GLFW_HAT_DOWN,
-            Left = GLFW_HAT_LEFT,
-            RightUp = GLFW_HAT_RIGHT_UP,
-            RightDown = GLFW_HAT_RIGHT_DOWN,
-            LeftUp = GLFW_HAT_LEFT_UP,
-            LeftDown = GLFW_HAT_LEFT_DOWN
-        };
+        void setWindowSizeLimits(int x_min, int y_min, int x_max, int y_max);
 
-        // Joystick Values Structs
-        struct JoyAxisValues {
-            int count;
-            const float* values;
+        void setAspectRatio(int x, int y);
 
-            const float operator[](unsigned int axis) {
-                if (axis < count) {
-                    return values[axis];
-                }
-                return 0;
-            };
-        };
+        void setWindowPos(int x, int y);
+        void getWindowPos(int *x, int *y);
+        glm::vec2 getWindowPos();
+        void setWindowPosCallback(GLFWwindowposfun callback);
+         
+        void setWindowTitle(const char* title);
 
-        struct JoyButtonValues {
-            int count;
-            const unsigned char* buttons;
-            
-            const State operator[](unsigned int b_id) {
-                if (b_id < count) {
-                    return static_cast<State>(buttons[b_id]);
-                }
-                return State::Release;
-            };
-        };
+        void setIcon(GLFWimage* icons, int count);
 
-        struct JoyHatValues {
-            int count;
-            const unsigned char* hats;
+        GLFWmonitor* getMonitor();
+        const GLFWvidmode* getVidMode();
 
-            const HatState operator[](unsigned int hat_id) {
-                if (hat_id < count) {
-                    return static_cast<HatState>(hats[hat_id]);
-                }
-                return HatState::Centered;
-            };
-        };
+        void setWindowMonitor(GLFWmonitor* monitor, int xpos, int ypos, int width, int height, int refreshrate);
+        
+        void restoreWindow();
+        
+        void iconify();
+        void setIconifyCallback(GLFWwindowiconifyfun callback);
 
-        // Basic windowless input functions
-        const int getScancode(int key);
-        const char* getKeyName(int key, int scancode);
+        void maximize();
+        void setMaximizeCallback(GLFWwindowmaximizefun callback);
 
-        class Joystick {
-        private:
-            unsigned int m_JoystickId;
-        public:
-            static bool isJoystickPresent(unsigned int id);
+        void hide();
+        void show();
+        bool isVisible();
 
-            Joystick(unsigned int id);
+        void focus();
+        void setFocusCallback(GLFWwindowfocusfun callback);
+        bool isFocused();
 
-            JoyAxisValues getAxes();
-            JoyButtonValues getButtons();
-            JoyHatValues getHats();
-            
-            const char* getName();
-        };
-    }
+        void requestAttention();
 
+        void setRefreshCallback(GLFWwindowrefreshfun callback);
 
-    // Cursor Class
-    class Cursor {
-    private:
-        GLFWcursor* m_Cursor;
+        void setOpacity(float opacity);
+        float getOpacity();
 
-        friend void Window::setCursor(Cursor* cursor);
-    public:
-        Cursor(unsigned char* pixels, int width, int height, int x_hot, int y_hot);
-        Cursor(int standard_type);
+        // User Pointer
+        void setUserPointer(void* ptr);
+        void* getUserPointer();
 
-        ~Cursor();
+        // Context
+
+        void makeContextCurrent();
+        static Window* getCurrentContext();
     };
 }
