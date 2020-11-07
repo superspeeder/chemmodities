@@ -4,6 +4,11 @@ set(SOURCES
     src/Application.cpp
     src/Window.cpp
     src/Exceptions.cpp
+    src/Entity.cpp
+    src/Component.cpp
+    src/Utils.cpp
+    src/Shader.cpp
+    src/Buffer.cpp
 )
 
 set(GLAD_SOURCE

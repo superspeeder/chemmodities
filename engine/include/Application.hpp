@@ -5,8 +5,5 @@ namespace chengine {
 	class Application {
 	public:
 		Application();
-
-	
-
 	};
 }
