@@ -2,9 +2,6 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <Application.h>
-#include <glm/vec3.hpp>
-
 
 void APIENTRY glDebugOutput(GLenum source, 
                             GLenum type, 
@@ -42,7 +39,7 @@ void APIENTRY glDebugOutput(GLenum source,
         case GL_DEBUG_TYPE_POP_GROUP:           std::cout << "Type: Pop Group"; break;
         case GL_DEBUG_TYPE_OTHER:               std::cout << "Type: Other"; break;
     } std::cout << std::endl;
-    
+ 
     switch (severity)
     {
         case GL_DEBUG_SEVERITY_HIGH:         std::cout << "Severity: high"; break;
@@ -56,54 +53,48 @@ void APIENTRY glDebugOutput(GLenum source,
 
 int main() {
 
-    GLFWwindow* window;
+
+
+
+    std::cout << "FUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUCK\n";
 
     if (!glfwInit()) {
-        std::cerr << "FUCK GLFW DID THE EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEee\n";
+        std::cerr << "cry :(((";
         return -1;
     }
 
-    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);  
-    window = glfwCreateWindow(800, 800, "Fuck Glasser 2.0", NULL, NULL);
+    GLFWwindow *window;
+
+    window = glfwCreateWindow(900,900, "The Cumsocket", NULL, NULL);
 
     if (!window) {
+        std::cerr << "even more cry :((((((";
         glfwTerminate();
-        std::cerr << "FUCK GLFW FUCKED ITS WINDOW UP THE ASS\n";
         return -1;
     }
 
     glfwMakeContextCurrent(window);
 
-    if(!gladLoadGL()) {
-        glfwTerminate();
-        std::cerr << "GLAD IS FUCKEROO\n";
-    }
+    if ()
 
-    int flags; glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
-    if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
-    {
-        glEnable(GL_DEBUG_OUTPUT);
-        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS); 
-        glDebugMessageCallback(glDebugOutput, nullptr);
-        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-    } 
 
-    int fuck = 0;
+    // int flags; glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+    // if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
+    // {
+    //     glEnable(GL_DEBUG_OUTPUT);
+    //     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS); 
+    //     glDebugMessageCallback(glDebugOutput, nullptr);
+    //     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+    // }
 
 
     while (!glfwWindowShouldClose(window)) {
-        fuck++;
-        glClear(GL_COLOR_BUFFER_BIT);
-        glClearColor(
-            (float)(fuck % 200) / 200.0f,
-            (float)(fuck % 100) / 100.0f,
-            (float)(fuck %  50) /  50.0f,
-            1);
-
         glfwPollEvents();
+
         glfwSwapBuffers(window);
     }
 
     glfwTerminate();
+
     return 0;
 }
