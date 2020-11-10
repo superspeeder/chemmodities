@@ -1,220 +1,245 @@
 #include "Buffer.hpp"
-#include <algorithm>
+#include <sstream>
 
-template<VertexDataType T,VertBufTargetAction A,VertBufIOMode IO>
-void VertexDataBuffer<T,A,IO>::init() {
+
+std::ostream& operator<<(std::ostream& os, BufferDataMode mode) {
+    switch (mode) {
+        case BufferDataMode::StaticDraw:
+            return os << "StaticDraw";
+        case BufferDataMode::StaticCopy:
+            return os << "StaticCopy";
+        case BufferDataMode::StaticRead:
+            return os << "StaticRead";
+        case BufferDataMode::StreamDraw:
+            return os << "StreamDraw";
+        case BufferDataMode::StreamCopy:
+            return os << "StreamCopy";
+        case BufferDataMode::StreamRead:
+            return os << "StreamRead";
+        case BufferDataMode::DynamicDraw:
+            return os << "DynamicDraw";
+        case BufferDataMode::DynamicCopy:
+            return os << "DynamicCopy";
+        case BufferDataMode::DynamicRead:
+            return os << "DynamicRead";
+    }
+    return os;
+}
+
+VertexBuffer::VertexBuffer(BufferDataMode mode) {
     glGenBuffers(1, &m_BufferID);
+    m_BufferMode = mode;
     bind();
-    pushToBuffer();
     unbind();
 }
 
-template<VertexDataType T,VertBufTargetAction A,VertBufIOMode IO>
-void VertexDataBuffer<T,A,IO>::pushToBuffer(bool unbindAfter) {
-    if (isDirty()) {
-        bind();
-        if (m_NeedsResize) {
-            glBufferData(GL_ARRAY_BUFFER,m_BufferData.size() * sizeof(GLfloat), m_BufferData.data(),getMode());
-        } else {
-            glBufferSubData(GL_ARRAY_BUFFER,m_StartID * sizeof(GLfloat), (m_StartID - m_EndID) * sizeof(GLfloat), *(m_BufferData.at(m_StartID));
-        }
-        if (unbindAfter) unbind();
+void VertexBuffer::updateBuffer() {
+    bind();
+    glBufferSubData(GL_ARRAY_BUFFER, 0, m_BufferData.size() * sizeof(float), m_BufferData.data());
+    unbind();
+}
 
-        m_StartID = m_BufferData.size();
-        m_EndID = 0;
-        m_Dirty = false;
+void VertexBuffer::updateBuffer(GLsizei start, GLsizei end) {
+    bind();
+    glBufferSubData(GL_ARRAY_BUFFER, start * sizeof(float), (end - start) * sizeof(float), m_BufferData.data() + start);
+    unbind();
+}
+
+void VertexBuffer::pushBuffer() {
+    bind();
+    glBufferData(GL_ARRAY_BUFFER, m_BufferData.size() * sizeof(float), m_BufferData.data(), static_cast<unsigned int>(m_BufferMode));
+    unbind();
+}
+
+void VertexBuffer::pushBuffer(BufferDataMode newMode) {
+    bind();
+    glBufferData(GL_ARRAY_BUFFER, m_BufferData.size() * sizeof(float), m_BufferData.data(), static_cast<int>(newMode));
+    m_BufferMode = newMode;
+    unbind();
+}
+
+void VertexBuffer::bind() {
+    glBindBuffer(GL_ARRAY_BUFFER, m_BufferID);
+}
+
+void VertexBuffer::unbind() {
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void VertexBuffer::pushFloat(float f) {
+    m_BufferData.push_back(f);
+}
+
+void VertexBuffer::setFloat(size_t index, float f) {
+    m_BufferData.at(index) = f;
+}
+
+void VertexBuffer::eraseFloat(size_t index) {
+    m_BufferData.erase(m_BufferData.begin() + index);
+}
+
+void VertexBuffer::pushFloats(float* f, size_t count) {
+    for (size_t i = 0; i < count; i++) {
+        m_BufferData.push_back(f[i]);
     }
 }
 
-template<VertexDataType T,VertBufTargetAction A,VertBufIOMode IO>
-void VertexDataBuffer<T,A,IO>::markDirty() {
-    m_Dirty = true;
+void VertexBuffer::setFloats(float* f, size_t count, size_t front) {
+    for (size_t i = 0; i < count; i++) {
+        m_BufferData.at(front + i) = f[i];
+    }
 }
 
-template<VertexDataType T,VertBufTargetAction A,VertBufIOMode IO>
-bool VertexDataBuffer<T,A,IO>::isDirty() {
-    return m_Dirty;
+void VertexBuffer::eraseRange(size_t begin, size_t end) {
+    m_BufferData.erase(m_BufferData.begin() + begin, m_BufferData.begin() + end);
 }
 
-template<VertexDataType T,VertBufTargetAction A,VertBufIOMode IO>
-constexpr GLuint VertexDataBuffer<T,A,IO>::getElementsPerVertex() {
-    return m_Elements;
+void VertexBuffer::pushVec2f(float x, float y) {
+    m_BufferData.push_back(x);
+    m_BufferData.push_back(y);
 }
 
-template<VertexDataType T,VertBufTargetAction A,VertBufIOMode IO>
-GLuint VertexDataBuffer<T,A,IO>::getVertexCount() {
-    return getElementCount() / getElementsPerVertex();
+void VertexBuffer::pushVec3f(float x, float y, float z) {
+    m_BufferData.push_back(x);
+    m_BufferData.push_back(y);
+    m_BufferData.push_back(z);
 }
 
-template<VertexDataType T,VertBufTargetAction A,VertBufIOMode IO>
-GLuint VertexDataBuffer<T,A,IO>::getElementCount() {
-    return m_BufferData.size();
-}
-
-template<VertexDataType T,VertBufTargetAction A,VertBufIOMode IO>
-void VertexDataBuffer<T,A,IO>::pushVertex(float x, float y, float z, float w) {
-    static_assert(m_Elements == 4, "Buffer doesn't support 4-element vertex data");
-    m_NeedsResize = true;
-    markDirty();
+void VertexBuffer::pushVec4f(float x, float y, float z, float w) {
     m_BufferData.push_back(x);
     m_BufferData.push_back(y);
     m_BufferData.push_back(z);
     m_BufferData.push_back(w);
+}
+
+void VertexBuffer::setVec2f(size_t index, float x, float y) {
+    m_BufferData.at(index) = x;
+    m_BufferData.at(index+1) = y;
+}
+
+void VertexBuffer::setVec3f(size_t index, float x, float y, float z) {
+    m_BufferData.at(index) = x;
+    m_BufferData.at(index+1) = y;
+    m_BufferData.at(index+2) = z;
 
 }
 
-template<VertexDataType T,VertBufTargetAction A,VertBufIOMode IO>
-void VertexDataBuffer<T,A,IO>::pushVertex(float x, float y, float z) {
-    static_assert(m_Elements == 3, "Buffer doesn't support 3-element vertex data");
-    m_NeedsResize = true;
-    markDirty();
-    m_BufferData.push_back(x);
-    m_BufferData.push_back(y);
-    m_BufferData.push_back(z);
-
+void VertexBuffer::setVec4f(size_t index, float x, float y, float z, float w) {
+    m_BufferData.at(index) = x;
+    m_BufferData.at(index+1) = y;
+    m_BufferData.at(index+2) = z;
+    m_BufferData.at(index+3) = w;
 }
 
-template<VertexDataType T,VertBufTargetAction A,VertBufIOMode IO>
-void VertexDataBuffer<T,A,IO>::pushVertex(float x, float y) {
-    static_assert(m_Elements == 2, "Buffer doesn't support 2-element vertex data");
-    m_NeedsResize = true;
-    markDirty();
-    m_BufferData.push_back(x);
-    m_BufferData.push_back(y);
+std::string VertexBuffer::getDebugTitle() {
+    std::ostringstream ss;
+    ss << "<VertexBuffer " << m_BufferID << " ; " << m_BufferData.size() <<" * floats ; " << m_BufferMode << ">";
+    return ss.str();
 }
 
-template<VertexDataType T,VertBufTargetAction A,VertBufIOMode IO>
-void VertexDataBuffer<T,A,IO>::pushVertex(float x) {
-    static_assert(m_Elements == 1, "Buffer doesn't support 1-element vertex data");
-    m_NeedsResize = true;
-    markDirty();
-    m_BufferData.push_back(x);
+std::string VertexBuffer::getFullDebugInfo() {
+    std::ostringstream ss;
+    ss << "VertexBuffer:\n\tID: " << m_BufferID << "\n\tSize: " << m_BufferData.size() << "\n\tData Type: float\n\tBuffer Mode: " << m_BufferMode << "\n";
+    return ss.str();
 }
 
-template<VertexDataType T,VertBufTargetAction A,VertBufIOMode IO>
-void VertexDataBuffer<T,A,IO>::pushVertex(float* vert) {
-    static_assert(vert != nullptr, "Can't push null vertex data to buffer");
-    m_NeedsResize = true;
-    markDirty();
-
-    for (unsigned int i = 0 ; i < m_Elements ; i++) {
-        m_BufferData.push_back(vert[i]);
-    }
+float VertexBuffer::getValue(size_t index) {
+    return m_BufferData.at(index);
 }
 
-template<VertexDataType T,VertBufTargetAction A,VertBufIOMode IO>
-void VertexDataBuffer<T,A,IO>::editVertex(unsigned int id, float x, float y, float z, float w) {
-    static_assert(m_Elements == 4, "Buffer doesn't support 4-element vertex data");
-    if (m_StartID > id*4) m_StartID = id*4;
-    if (m_EndID < id*4 + 4) m_EndID = id*4 + 4;
-    markDirty();
-
-    m_BufferData[id*4] = x;
-    m_BufferData[id*4+1] = y;
-    m_BufferData[id*4+2] = z;
-    m_BufferData[id*4+3] = w;
+glm::vec2 VertexBuffer::getVec2(size_t index) {
+    return glm::vec2(getValue(index), getValue(index + 1));
 }
 
-template<VertexDataType T,VertBufTargetAction A,VertBufIOMode IO>
-void VertexDataBuffer<T,A,IO>::editVertex(unsigned int id, float x, float y, float z) {
-    static_assert(m_Elements == 3, "Buffer doesn't support 3-element vertex data");
-
-    if (m_StartID > id*3) m_StartID = id*3;
-    if (m_EndID < id*3 + 3) m_EndID = id*3 + 3;
-    markDirty();
-
-    m_BufferData[id*3] = x;
-    m_BufferData[id*3+1] = y;
-    m_BufferData[id*3+2] = z;
+glm::vec3 VertexBuffer::getVec3(size_t index) {
+    return glm::vec3(getValue(index), getValue(index + 1), getValue(index + 2));
 }
 
-template<VertexDataType T,VertBufTargetAction A,VertBufIOMode IO>
-void VertexDataBuffer<T,A,IO>::editVertex(unsigned int id, float x, float y) {
-    static_assert(m_Elements == 2, "Buffer doesn't support 2-element vertex data");
-    if (m_StartID > id*2) m_StartID = id*2;
-    if (m_EndID < id*2 + 2) m_EndID = id*2 + 2;
-    markDirty();
-
-    m_BufferData[id*2] = x;
-    m_BufferData[id*2+1] = y;
-}
-
-template<VertexDataType T,VertBufTargetAction A,VertBufIOMode IO>
-void VertexDataBuffer<T,A,IO>::editVertex(unsigned int id, float x) {
-    static_assert(m_Elements == 1, "Buffer doesn't support 1-element vertex data");
-
-    if (m_StartID > id) m_StartID = id;
-    if (m_EndID < id + 1) m_EndID = id + 1;
-    markDirty();
-
-    m_BufferData[id] = x;
-}
-
-template<VertexDataType T,VertBufTargetAction A,VertBufIOMode IO>
-void VertexDataBuffer<T,A,IO>::editValue(unsigned int id, float value) {
-    if (m_StartID > id) m_StartID = id;
-    if (m_EndID < id + 1) m_EndID = id + 1;
-
-    m_BufferData[id] = value;
-}
-
-// end exlusive
-template<VertexDataType T,VertBufTargetAction A,VertBufIOMode IO>
-void VertexDataBuffer<T,A,IO>::editValues(unsigned int start, unsigned int end, float* values) {
-    if (m_StartID > start) m_StartID = start;
-    if (m_EndID < end) m_EndID = end;
-    markDirty();
-
-    if (values == nullptr) {
-        m_BufferData.erase(m_BufferData.begin() + start, m_BufferData.back() + end);
-    } else if (end - start == 0) {
-        return; 
-    } else if (end - start == 1) { 
-        m_BufferData[start] = values[0]; // only one value
-    } else {
-        std::copy(values, values + (end-start), m_BufferData.begin() + start);
-    }
-}
-
-template<VertexDataType T,VertBufTargetAction A,VertBufIOMode IO>
-void VertexDataBuffer<T,A,IO>::bind() {
-    glBindBuffer(GL_ARRAY_BUFFER,m_BufferID);
-}
-
-template<VertexDataType T,VertBufTargetAction A,VertBufIOMode IO>
-void VertexDataBuffer<T,A,IO>::unbind() {
-    glBindBuffer(GL_ARRAY_BUFFER,0);
+glm::vec4 VertexBuffer::getVec4(size_t index) {
+    return glm::vec4(getValue(index), getValue(index + 1), getValue(index + 2), getValue(index + 3));
 }
 
 
-template <PrimitiveType P> VertexArray<P>::VertexArray() {
-    glCreateVertexArrays(1,&m_VertexArrayID);
+IndexBuffer::IndexBuffer(BufferDataMode mode) {
+    glGenBuffers(1, &m_BufferID);
+    m_BufferMode = mode;
+    bind();
+    unbind();
 }
 
-template <PrimitiveType P> void VertexArray<P>::enableAttribute(unsigned int index) {
-    glEnableVertexArrayAttrib(m_VertexArrayID, index);
+void IndexBuffer::updateBuffer() {
+    bind();
+    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m_BufferData.size() * sizeof(unsigned int), m_BufferData.data());
+    unbind();
 }
 
-template <PrimitiveType P> void VertexArray<P>::bind() {
-    glBindVertexArray(m_VertexArrayID);
+void IndexBuffer::updateBuffer(GLsizei start, GLsizei end) {
+    bind();
+    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, start * sizeof(unsigned int), (end - start) * sizeof(unsigned int), m_BufferData.data() + start);
+    unbind();
 }
 
-template <PrimitiveType P> void VertexArray<P>::unbind() {
-    glBindVertexArray(0);
+void IndexBuffer::pushBuffer() {
+    bind();
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_BufferData.size() * sizeof(unsigned int), m_BufferData.data(), static_cast<unsigned int>(m_BufferMode));
+    unbind();
 }
 
-template <PrimitiveType P> void VertexArray<P>::bindElementArray(IndexBuffer<P>* buffer) {
-    glVertexArrayElementBuffer(m_VertexArrayID, buffer->m_IndexBufferID);
+void IndexBuffer::pushBuffer(BufferDataMode newMode) {
+    bind();
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_BufferData.size() * sizeof(unsigned int), m_BufferData.data(), static_cast<int>(newMode));
+    m_BufferMode = newMode;
+    unbind();
 }
 
-template <PrimitiveType T> void IndexBuffer<T>::init() {
-    glGenBuffers(1,&m_IndexBufferID);
+void IndexBuffer::bind() {
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_BufferID);
 }
 
-template <PrimitiveType T> void IndexBuffer<T>::bind() {
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndexBufferID);
-}
-
-template <PrimitiveType T> void IndexBuffer<T>::unbind() {
+void IndexBuffer::unbind() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+void IndexBuffer::pushValue(unsigned int value) {
+    m_BufferData.push_back(value);
+}
+
+void IndexBuffer::setFloat(size_t index, unsigned int v) {
+    m_BufferData.at(index) = v;
+}
+
+void IndexBuffer::eraseValue(size_t index) {
+    m_BufferData.erase(m_BufferData.begin() + index);
+}
+
+void IndexBuffer::pushValues(unsigned int* values, size_t count) {
+    for (size_t i = 0; i < count; i++) {
+        m_BufferData.push_back(values[i]);
+    }
+}
+
+void IndexBuffer::setValues(unsigned int* v, size_t count, size_t front) {
+    for (size_t i = 0; i < count; i++) {
+        m_BufferData.at(front + i) = v[i];
+    }
+}
+
+void IndexBuffer::eraseRange(size_t begin, size_t end) {
+    m_BufferData.erase(m_BufferData.begin() + begin, m_BufferData.begin() + end);
+}
+
+std::string IndexBuffer::getDebugTitle() {
+    std::ostringstream ss;
+    ss << "<IndexBuffer " << m_BufferID << " ; " << m_BufferData.size() <<" * unsigned ints ; " << m_BufferMode << ">";
+    return ss.str();
+}
+
+std::string IndexBuffer::getFullDebugInfo() {
+    std::ostringstream ss;
+    ss << "IndexBuffer:\n\tID: " << m_BufferID << "\n\tSize: " << m_BufferData.size() << "\n\tData Type: unsigned int\n\tBuffer Mode: " << m_BufferMode << "\n";
+    return ss.str();
+}
+
+unsigned int IndexBuffer::getValue(size_t index) {
+    return m_BufferData.at(index);
 }

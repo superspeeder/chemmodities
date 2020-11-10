@@ -1,13 +1,31 @@
 #include "Utils.hpp"
+#define WINDOWS
 
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <stdio.h>  // defines FILENAME_MAX
+#ifdef WINDOWS
+#include <direct.h>
+#define GetCurrentDir _getcwd
+#else
+#include <unistd.h>
+#define GetCurrentDir getcwd
+#endif
+
+
+std::string get_current_dir() {
+	char buff[FILENAME_MAX]; //create string buffer to hold path
+	GetCurrentDir(buff, FILENAME_MAX);
+	std::string current_working_dir(buff);
+	return current_working_dir;
+}
 
 std::string chengine::readFile(const char* path) {
 	std::ifstream t(path);
 	std::stringstream buffer;
 	buffer << t.rdbuf();
+	std::cout << get_current_dir() << "\n";
 
 	return buffer.str();
 }

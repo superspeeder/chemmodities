@@ -137,6 +137,6 @@ void chengine::ShaderProgram::uniform4d(const char* name, double x, double y, do
 
 chengine::ShaderProgram& chengine::operator<<(chengine::ShaderProgram& sp, const char* path) {
     sp.pushShader(new chengine::Shader(path));
-	std::cout << "Added shader " << path << "";
+	std::cout << "Added shader " << path << "\n";
     return sp;
 }

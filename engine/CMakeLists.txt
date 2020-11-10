@@ -26,8 +26,10 @@ target_include_directories(Engine
 
 add_subdirectory(vendor/glm)
 add_subdirectory(vendor/glfw)
+add_subdirectory(vendor/stb)
 
 target_link_libraries(Engine
     glm::glm
     glfw
+    stb::stb
 )

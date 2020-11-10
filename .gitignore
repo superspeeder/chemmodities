@@ -4,6 +4,8 @@ build
 .vscode
 output
 .vsls.json
+.vs
+extras
 
 game.zip
 
