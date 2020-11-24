@@ -70,3 +70,74 @@ void che::RenderBuffer::bind() {
 void che::RenderBuffer::unbind() {
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
 }
+
+
+che::RenderableFrameBuffer::RenderableFrameBuffer(che::Texture* fbTex) {
+    this->fbTex = fbTex;
+
+    iboFB = new che::IndexBuffer(che::BufferDataMode::StaticDraw);
+
+    vaoFB = new che::VertexArray();
+    vboFBPos = new che::VertexBuffer(che::BufferDataMode::StaticDraw);
+    vboFBColor = new che::VertexBuffer(che::BufferDataMode::StaticDraw);
+    vboFBUV = new che::VertexBuffer(che::BufferDataMode::StaticDraw);
+    
+    fb_posAttr.buffer = vboFBPos;
+    fb_posAttr.index = 0;
+    fb_posAttr.vertex_size = 2;
+    vaoFB->pushAttribute(fb_posAttr, true);
+
+    fb_uvAttr.buffer = vboFBUV;
+    fb_uvAttr.index = 1;
+    fb_uvAttr.vertex_size = 2;
+    vaoFB->pushAttribute(fb_uvAttr, true);
+
+    fb_colorAttr.buffer = vboFBColor;
+    fb_colorAttr.index = 2;
+    fb_colorAttr.vertex_size = 4;
+    vaoFB->pushAttribute(fb_colorAttr,true);
+
+    vaoFB->bind();
+    vboFBPos->pushFloats(new float[8] {
+        -1,-1,
+         1,-1,
+         1, 1,
+        -1, 1
+    }, 8);
+    vboFBPos->pushBuffer();
+
+    vboFBUV->pushFloats(new float[8] {
+        0,0,
+        1,0,
+        1,1,
+        0,1
+    },8);
+    vboFBUV->pushBuffer();
+
+    vboFBColor->pushFloats(new float[16]{
+        1,1,1,1,
+        1,1,1,1,
+        1,1,1,1,
+        1,1,1,1
+    },16);
+    vboFBColor->pushBuffer();
+
+    iboFB->pushValues(new unsigned int[6] {
+        0,1,2,
+        0,2,3
+    },6);
+    iboFB->pushBuffer();
+
+    vaoFB->unbind();
+
+    vaoFB->attachIndexBuffer(iboFB);
+}
+
+void che::RenderableFrameBuffer::draw() {
+    fbTex->bind();
+    vaoFB->bind();
+    glDrawElements(GL_TRIANGLES,24,GL_UNSIGNED_INT,0);
+    vaoFB->unbind();
+    fbTex->unbind();
+
+}

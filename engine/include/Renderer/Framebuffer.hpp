@@ -3,6 +3,7 @@
 #include <glad/glad.h>
 #include "Renderer/Texture.hpp"
 #include "Utils/Utils.hpp"
+#include "Renderer/Buffer.hpp"
 
 namespace che {
 
@@ -75,6 +76,27 @@ namespace che {
         void unbind();
 
         inline unsigned int getHandle() { return m_RenderBufferID; };
+
+    };
+
+    class RenderableFrameBuffer {
+    private:
+        
+        che::VertexBuffer *vboFBPos, *vboFBColor, *vboFBUV;
+        che::IndexBuffer *iboFB;
+        che::VertexArray *vaoFB;
+
+        che::VertexAttribute fb_posAttr;
+        che::VertexAttribute fb_uvAttr;
+        che::VertexAttribute fb_colorAttr;
+
+        che::Texture* fbTex;
+
+    public:
+
+        RenderableFrameBuffer(che::Texture* fbTex);
+
+        void draw();
 
     };
 }

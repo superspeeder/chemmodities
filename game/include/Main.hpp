@@ -9,20 +9,13 @@ private:
 
     che::SpriteBatch *spriteBatch;
 
-    che::VertexBuffer *vboFBPos, *vboFBColor, *vboFBUV;
-    che::IndexBuffer *iboFB;
-    che::VertexArray *vaoFB;
-
-    che::VertexAttribute fb_posAttr;
-    che::VertexAttribute fb_uvAttr;
-    che::VertexAttribute fb_colorAttr;
-
     che::ShaderProgram *program, *screenProgram;
 
     che::Texture *tex, *fbTex;
 
     che::Framebuffer* fbuffer;
 
+    che::RenderableFrameBuffer* rframeb;
 public:
 
     Game();

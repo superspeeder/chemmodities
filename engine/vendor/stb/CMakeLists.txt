@@ -1,5 +1,7 @@
 project (stb LANGUAGES C)
 
+add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+
 set (STB_IMPLEMENTATIONS
     src/stb_c_lexer.c
     src/stb_connected_components.c

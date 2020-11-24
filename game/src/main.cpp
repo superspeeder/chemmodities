@@ -31,107 +31,41 @@ Game::Game() {
 
 void Game::create() {
 
-    glClearColor(1.0f,1.0f,1.0f,1.0f);
-    glEnable(GL_DEPTH_TEST);
-    glLineWidth(4);
-
-    iboFB = new che::IndexBuffer(che::BufferDataMode::StaticDraw);
-
-    vaoFB = new che::VertexArray();
-    vboFBPos = new che::VertexBuffer(che::BufferDataMode::StaticDraw);
-    vboFBColor = new che::VertexBuffer(che::BufferDataMode::StaticDraw);
-    vboFBUV = new che::VertexBuffer(che::BufferDataMode::StaticDraw);
-    
-    fb_posAttr.buffer = vboFBPos;
-    fb_posAttr.index = 0;
-    fb_posAttr.vertex_size = 2;
-    vaoFB->pushAttribute(fb_posAttr, true);
-
-    fb_uvAttr.buffer = vboFBUV;
-    fb_uvAttr.index = 1;
-    fb_uvAttr.vertex_size = 2;
-    vaoFB->pushAttribute(fb_uvAttr, true);
-
-    fb_colorAttr.buffer = vboFBColor;
-    fb_colorAttr.index = 2;
-    fb_colorAttr.vertex_size = 4;
-    vaoFB->pushAttribute(fb_colorAttr,true);
-
-    vaoFB->bind();
-    vboFBPos->pushFloats(new float[8] {
-        -1,-1,
-         1,-1,
-         1, 1,
-        -1, 1
-    }, 8);
-    vboFBPos->pushBuffer();
-
-    vboFBUV->pushFloats(new float[8] {
-        0,0,
-        1,0,
-        1,1,
-        0,1
-    },8);
-    vboFBUV->pushBuffer();
-
-    vboFBColor->pushFloats(new float[16]{
-        1,0,0,1,
-        0,1,0,1,
-        0,0,1,1,
-        1,0,1,1
-    },16);
-    vboFBColor->pushBuffer();
-
-    iboFB->pushValues(new unsigned int[6] {
-        0,1,2,
-        0,2,3
-    },6);
-    iboFB->pushBuffer();
-
-    vaoFB->unbind();
-
-    vaoFB->attachIndexBuffer(iboFB);
-
-    program = new che::ShaderProgram();
-    screenProgram = new che::ShaderProgram();
-
-    (*program) << "shaders/vsh.glsl" << "shaders/fsh.glsl";
-    (*screenProgram) << "shaders/vsh.glsl" << "shaders/fshScreen.glsl";
-
-    program->linkProgram();
-    screenProgram->linkProgram();
-
     che::TextureSettings texSettings, fbTexSettings;
-
     texSettings.Min = che::TextureResizeMode::Linear;
     texSettings.Mag = che::TextureResizeMode::Linear;
+
+
+
+    program = new che::ShaderProgram();
+    (*program) << "shaders/vsh.glsl" << "shaders/fsh.glsl";
+    program->linkProgram();
+
+    screenProgram = new che::ShaderProgram();
+    (*screenProgram) << "shaders/vsh.glsl" << "shaders/fshScreen.glsl";
+    screenProgram->linkProgram();
 
     tex = new che::Texture("textures/HighAsAKite.png", texSettings);
     fbTex = new che::Texture(800,800,fbTexSettings);
 
     fbuffer = new che::Framebuffer();
     fbuffer->bindTexture(fbTex,che::TextureAttachment::Color0);
+    rframeb = new che::RenderableFrameBuffer(fbTex);
 
     spriteBatch = new che::SpriteBatch(tex);
 
+    glEnable(GL_DEPTH_TEST);
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
+
+    glClearColor(1.0f,1.0f,1.0f,1.0f);
+
 }
-int factor = 6;
-float i = 0;
-float pi = 3.14159;
 
 void Game::render(double dt) {
-    i += 0.03f;
-
-    float e = 1.0f / factor;
-    // spdlog::debug(e);
     spriteBatch->begin();
-    for (float x = -1; x < 1; x += e) {
-        for (float y = -1; y < 1; y += e) {
-            spriteBatch->batchQuad({{x,y}, {e,e}, {0,0},{1,1}, std::fmodf(i,2 * pi)});
-        }
-    }
+    spriteBatch->batchQuad({{0,0}, {1,1}, {0,0},{1,1}, 0});
     spriteBatch->end();
 
     fbuffer->bind();
@@ -140,16 +74,11 @@ void Game::render(double dt) {
     program->use();
     spriteBatch->render();
     fbuffer->unbind();
-
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
     screenProgram->use();
-    fbTex->bind();
-    vaoFB->bind();
-    glDrawElements(GL_TRIANGLES,24,GL_UNSIGNED_INT,0);
-    vaoFB->unbind();
-    fbTex->unbind();
+    rframeb->draw();
 
     che::ShaderProgram::unbind();
 }

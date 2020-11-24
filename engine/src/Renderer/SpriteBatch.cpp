@@ -21,14 +21,14 @@ void che::SpriteBatch::init() {
         if (quad_i == 0)
             spdlog::debug(vbo_start);
 
-        s_StaticEBO->pushValue(vbo_start);
-        s_StaticEBO->pushValue(vbo_start + 1);
-        s_StaticEBO->pushValue(vbo_start + 3);
+        s_StaticEBO->pushValue((unsigned int)(vbo_start));
+        s_StaticEBO->pushValue((unsigned int)(vbo_start + 1));
+        s_StaticEBO->pushValue((unsigned int)(vbo_start + 3));
 
 
-        s_StaticEBO->pushValue(vbo_start);
-        s_StaticEBO->pushValue(vbo_start + 3);
-        s_StaticEBO->pushValue(vbo_start + 2);
+        s_StaticEBO->pushValue((unsigned int)(vbo_start));
+        s_StaticEBO->pushValue((unsigned int)(vbo_start + 3));
+        s_StaticEBO->pushValue((unsigned int)(vbo_start + 2));
     }
 
   
@@ -61,11 +61,11 @@ che::SpriteBatch::SpriteBatch(Texture* tex) {
     vboTexture->reserve(SPRITEBATCH_MAX_QUADS * 8);
 
     s_StaticEBO->bind();
-    void* data = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_READ_WRITE);
-    unsigned int* fdat = (unsigned int*)data;
-    spdlog::debug("{} {} {} {} {} {}", fdat[0],fdat[1],fdat[2],fdat[3],fdat[4],fdat[5]);
+    // void* data = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_READ_WRITE);
+    // unsigned int* fdat = (unsigned int*)data;
+    // spdlog::debug("{} {} {} {} {} {}", fdat[0],fdat[1],fdat[2],fdat[3],fdat[4],fdat[5]);
 
-    glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+    // glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
 
     s_StaticEBO->unbind();
 
@@ -138,7 +138,7 @@ void che::SpriteBatch::batchQuad(BatchableQuad quad) {
 void che::SpriteBatch::render() {
     m_Texture->bind();
     vao->bind();
-    glDrawElements(GL_TRIANGLES, m_Quads * 6, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, m_Quads * 6, GL_UNSIGNED_INT, (GLsizei)0);
     vao->unbind();
     m_Texture->unbind();
 
