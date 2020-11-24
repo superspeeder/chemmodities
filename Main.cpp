@@ -3,9 +3,7 @@
 #include <iostream>
 
 #include <Main.hpp>
-#include <math.h>
 
-#define SIZE 0.05
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -35,12 +33,35 @@ void Game::create() {
     glEnable(GL_DEPTH_TEST);
     glLineWidth(4);
 
+    m_Window->setFramebufferSizeCallback(framebuffer_size_callback);
+    m_Window->setCharCallback(char_callback);
+
+    vboPosition = new che::VertexBuffer(che::BufferDataMode::StaticDraw);
+    vboColor = new che::VertexBuffer(che::BufferDataMode::StaticDraw);
+    vboUV = new che::VertexBuffer(che::BufferDataMode::StaticDraw);
     iboFB = new che::IndexBuffer(che::BufferDataMode::StaticDraw);
+    ibo = new che::IndexBuffer(che::BufferDataMode::StaticDraw);
+    vao = new che::VertexArray();
 
     vaoFB = new che::VertexArray();
     vboFBPos = new che::VertexBuffer(che::BufferDataMode::StaticDraw);
     vboFBColor = new che::VertexBuffer(che::BufferDataMode::StaticDraw);
     vboFBUV = new che::VertexBuffer(che::BufferDataMode::StaticDraw);
+
+    positionAttr.buffer = vboPosition;
+    positionAttr.index = 0;
+    positionAttr.vertex_size = 3;
+    vao->pushAttribute(positionAttr, true);
+
+    colorAttr.buffer = vboColor;
+    colorAttr.index = 2;
+    colorAttr.vertex_size = 4;
+    vao->pushAttribute(colorAttr, true);
+
+    uvAttr.buffer = vboUV;
+    uvAttr.index = 1;
+    uvAttr.vertex_size = 2;
+    vao->pushAttribute(uvAttr, true);
     
     fb_posAttr.buffer = vboFBPos;
     fb_posAttr.index = 0;
@@ -90,7 +111,58 @@ void Game::create() {
 
     vaoFB->unbind();
 
+    vao->bind();
+    vboPosition->pushVec3f(-1,1,0); // 0
+    vboPosition->pushVec3f(0,1,0); // 1
+    vboPosition->pushVec3f(1,1,0); // 2
+    vboPosition->pushVec3f(-1,0,0); // 3
+    vboPosition->pushVec3f(0,0,0); // 4
+    vboPosition->pushVec3f(1,0,0); // 5
+    vboPosition->pushVec3f(-1,-1,0); // 6
+    vboPosition->pushVec3f(0,-1,0); // 7
+    vboPosition->pushVec3f(1,-1,0); // 8
+    vboPosition->pushBuffer();
+
+    vboColor->pushVec4f(1,1,1,1);
+    vboColor->pushVec4f(1,0,0,1);
+    vboColor->pushVec4f(1,1,1,1);
+
+    vboColor->pushVec4f(0,1,0,1);
+    vboColor->pushVec4f(0,0,0,1);
+    vboColor->pushVec4f(0,0,1,1);
+
+    vboColor->pushVec4f(1,1,1,1);
+    vboColor->pushVec4f(1,0,1,1);
+    vboColor->pushVec4f(1,1,1,1);
+    vboColor->pushBuffer();
+
+    vboUV->pushVec2f(0.0,1.0);
+    vboUV->pushVec2f(0.5,1.0);
+    vboUV->pushVec2f(1.0,1.0);
+    vboUV->pushVec2f(0.0,0.5);
+    vboUV->pushVec2f(0.5,0.5);
+    vboUV->pushVec2f(1.0,0.5);
+    vboUV->pushVec2f(0.0,0.0);
+    vboUV->pushVec2f(0.5,0.0);
+    vboUV->pushVec2f(1.0,0.0);
+    vboUV->pushBuffer();
+
+    vao->unbind();
+
+    vao->attachIndexBuffer(ibo);
     vaoFB->attachIndexBuffer(iboFB);
+
+    ibo->pushValues(new unsigned int[24] {
+        0,3,1,
+        3,4,1,
+        2,1,5,
+        4,5,1,
+        3,6,7,
+        7,4,3,
+        4,7,5,
+        7,8,5
+    }, 24);
+    ibo->pushBuffer();
 
     program = new che::ShaderProgram();
     screenProgram = new che::ShaderProgram();
@@ -106,48 +178,36 @@ void Game::create() {
     texSettings.Min = che::TextureResizeMode::Linear;
     texSettings.Mag = che::TextureResizeMode::Linear;
 
-    tex = new che::Texture("textures/HighAsAKite.png", texSettings);
+    tex = new che::Texture("textures/magik-1.png", texSettings);
     fbTex = new che::Texture(800,800,fbTexSettings);
 
     fbuffer = new che::Framebuffer();
     fbuffer->bindTexture(fbTex,che::TextureAttachment::Color0);
 
-    spriteBatch = new che::SpriteBatch(tex);
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
 }
-int factor = 6;
-float i = 0;
-float pi = 3.14159;
 
 void Game::render(double dt) {
-    i += 0.03f;
-
-    float e = 1.0f / factor;
-    // spdlog::debug(e);
-    spriteBatch->begin();
-    for (float x = -1; x < 1; x += e) {
-        for (float y = -1; y < 1; y += e) {
-            spriteBatch->batchQuad({{x,y}, {e,e}, {0,0},{1,1}, std::fmodf(i,2 * pi)});
-        }
-    }
-    spriteBatch->end();
-
     fbuffer->bind();
     glClear(GL_COLOR_BUFFER_BIT);
 
     program->use();
-    spriteBatch->render();
+    tex->bind();
+    vao->bind();
+    // ibo->bind();
+    glDrawElements(GL_TRIANGLES,24,GL_UNSIGNED_INT,0);
+    // ibo->unbind();
+    vao->unbind();
+    tex->unbind();
+
     fbuffer->unbind();
-
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    
+
     screenProgram->use();
     fbTex->bind();
     vaoFB->bind();
-    glDrawElements(GL_TRIANGLES,24,GL_UNSIGNED_INT,0);
+    // iboFB->bind();
+    glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,0);
+    // iboFB->unbind();
     vaoFB->unbind();
     fbTex->unbind();
 

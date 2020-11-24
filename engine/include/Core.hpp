@@ -9,7 +9,10 @@ Generic Core includes
     - glad/glad.h
     - GLFW/glfw.h
     - glm/glm.hpp
-
+    - spdlog/spdlog.h
+    - spdlog/sinks/stdout_color_sinks.h
+    - spdlog/sinks/rotating_file_sink.h
+    
 define symbols if you want specific includes
 
 CHE_CORE_RENDER
@@ -39,34 +42,43 @@ The use of CHE_CORE_DEBUG activates utilities in DebugUtils.hpp
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
-#include "Constants.hpp"
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/rotating_file_sink.h>
 
-#include "Macros.hpp"
-#include "Utils.hpp"
-#include "Exceptions.hpp"
+#include "Utils/Constants.hpp"
+
+#include "Utils/Macros.hpp"
+#include "Utils/Utils.hpp"
+#include "Utils/Exceptions.hpp"
 
 
 #ifdef CHE_CORE_DEBUG
-#include "DebugUtils.hpp"
+#include "Utils/DebugUtils.hpp"
 #undef CHE_CORE_DEBUG
 #endif
 
 #ifdef CHE_CORE_RENDER
 #undef CHE_CORE_RENDER
-#include "Buffer.hpp"
-#include "Shader.hpp"
-#include "Window.hpp"
+#include "Renderer/Buffer.hpp"
+#include "Renderer/Shader.hpp"
+#include "Renderer/Window.hpp"
+#include "Renderer/Shape.hpp"
+#include "Renderer/Framebuffer.hpp"
+#include "Renderer/Renderer.hpp"
+#include "Renderer/Texture.hpp"
+#include "Renderer/SpriteBatch.hpp"
 #endif
 
 #ifdef CHE_CORE_APP
 #undef CHE_CORE_APP
 #include "Application.hpp"
-#include "Window.hpp"
+#include "Renderer/Window.hpp"
 #endif
 
 
 #ifdef CHE_CORE_ECS
 #undef CHE_CORE_ECS
-#include "Entity.hpp"
-#include "Component.hpp"
+#include "ECS/Entity.hpp"
+#include "ECS/Component.hpp"
 #endif

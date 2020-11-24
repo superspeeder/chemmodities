@@ -1,21 +1,25 @@
-#include "Shader.hpp"
+#include "Renderer/Shader.hpp"
 #include <sstream>
 #include <iostream>
 
-chengine::Shader::Shader(const char* path) {
+#include "Application.hpp"
+
+che::Shader::Shader(const char* path) {
+	m_Path = std::string(path);
+
 	// first line should be a directive
-	std::string source = readFile(path);
+	std::string source = che::readFile(path);
 
 	std::stringstream stream(source);
 
 	std::string line1;
 
 	std::getline(stream, line1);
-	if (!chengine::lineContainsDirective(line1.c_str())) {
+	if (!che::lineContainsDirective(line1.c_str())) {
 		throw std::runtime_error("Shader '" + std::string(path) + "' does not contain a directive on the first line");
 	}
 	
-	chengine::Directive type_directive = chengine::parseDirective(line1.c_str());
+	che::Directive type_directive = che::parseDirective(line1.c_str());
 
 	if (type_directive.type != "shader") {
 		throw std::runtime_error("Shader '" + std::string(path) + "' must contain a #shader <type> directive on the first line");
@@ -61,17 +65,38 @@ chengine::Shader::Shader(const char* path) {
 		throw std::runtime_error("Shader '" + std::string(path) + "' did not compile properly");
 	}
 
+	spdlog::debug("Successfully loaded and compiled Shader[{}] {}", m_Handle, m_Path);
+
+    if (che::Disposable::s_autoDisposable) {
+        che::Disposable::s_mainDisposer->registerDisposableObject(this);
+    }
 }
 
+che::Shader::~Shader() {
+	glDeleteShader(m_Handle);
+	spdlog::debug("Deleted Shader[{}] {}", m_Handle, m_Path);
+}
 
-chengine::ShaderProgram::ShaderProgram() {
+che::ShaderProgram::ShaderProgram() {
 	m_Handle = glCreateProgram();
+
+    if (che::Disposable::s_autoDisposable) {
+        che::Disposable::s_mainDisposer->registerDisposableObject(this);
+    }
 }
 
-void chengine::ShaderProgram::pushShader(chengine::Shader* shader) {
-	glAttachShader(m_Handle, shader->getHandle());
+che::ShaderProgram::~ShaderProgram() {
+	glDeleteProgram(m_Handle);
+	spdlog::debug("Deleted ShaderProgram {}", m_Handle);
 }
-void chengine::ShaderProgram::linkProgram() {
+
+void che::ShaderProgram::pushShader(che::Shader* shader) {
+	glAttachShader(m_Handle, shader->getHandle());
+	m_Shaders.push_back(shader);
+	spdlog::debug("Pushed Shader[{}] {} to ShaderProgram {}", shader->getHandle(), shader->getPath(), m_Handle);
+}
+
+void che::ShaderProgram::linkProgram() {
 	glLinkProgram(m_Handle);
 
 	GLint linkStatus = GL_FALSE;
@@ -82,61 +107,68 @@ void chengine::ShaderProgram::linkProgram() {
 		char infoLog[512];
 		
 		glGetProgramInfoLog(m_Handle, 512, nullptr, infoLog);
-		std::cerr << infoLog << std::endl;
+		spdlog::error(infoLog);
 		throw std::runtime_error("Program " + std::to_string(m_Handle) + " wasn't able to link properly.");
 	}
+
+	for (Shader* shader : m_Shaders) {
+		s_mainDisposer->removeDisposable(shader);
+		delete shader;
+	}
+	m_Shaders.clear();
+
+	spdlog::debug("ShaderProgram {} linked", m_Handle);
 }
 
-void chengine::ShaderProgram::use() {
+void che::ShaderProgram::use() {
 	glUseProgram(m_Handle);
 }
 
-unsigned int chengine::ShaderProgram::getUniformLocation(const char* name) {
+unsigned int che::ShaderProgram::getUniformLocation(const char* name) {
 	return glGetUniformLocation(m_Handle, name);
 }
 
-void chengine::ShaderProgram::uniform1f(const char* name, float x) {
+void che::ShaderProgram::uniform1f(const char* name, float x) {
 	glUniform1f(getUniformLocation(name), x);
 }
-void chengine::ShaderProgram::uniform2f(const char* name, float x, float y) {
+void che::ShaderProgram::uniform2f(const char* name, float x, float y) {
 	glUniform2f(getUniformLocation(name), x, y);
 }
-void chengine::ShaderProgram::uniform3f(const char* name, float x, float y, float z) {
+void che::ShaderProgram::uniform3f(const char* name, float x, float y, float z) {
 	glUniform3f(getUniformLocation(name), x, y, z);
 }
-void chengine::ShaderProgram::uniform4f(const char* name, float x, float y, float z, float w) {
+void che::ShaderProgram::uniform4f(const char* name, float x, float y, float z, float w) {
 	glUniform4f(getUniformLocation(name), x, y, z, w);
 }
 
-void chengine::ShaderProgram::uniform1i(const char* name, int x) {
+void che::ShaderProgram::uniform1i(const char* name, int x) {
 	glUniform1i(getUniformLocation(name), x);
 }
-void chengine::ShaderProgram::uniform2i(const char* name, int x, int y) {
+void che::ShaderProgram::uniform2i(const char* name, int x, int y) {
 	glUniform2i(getUniformLocation(name), x, y);
 }
-void chengine::ShaderProgram::uniform3i(const char* name, int x, int y, int z) {
+void che::ShaderProgram::uniform3i(const char* name, int x, int y, int z) {
 	glUniform3i(getUniformLocation(name), x, y, z);
 }
-void chengine::ShaderProgram::uniform4i(const char* name, int x, int y, int z, int w) {
+void che::ShaderProgram::uniform4i(const char* name, int x, int y, int z, int w) {
 	glUniform4i(getUniformLocation(name), x, y, z, w);
 }
 
-void chengine::ShaderProgram::uniform1d(const char* name, double x) {
+void che::ShaderProgram::uniform1d(const char* name, double x) {
 	glUniform1d(getUniformLocation(name), x);
 }
-void chengine::ShaderProgram::uniform2d(const char* name, double x, double y) {
+void che::ShaderProgram::uniform2d(const char* name, double x, double y) {
 	glUniform2d(getUniformLocation(name), x, y);
 }
-void chengine::ShaderProgram::uniform3d(const char* name, double x, double y, double z) {
+void che::ShaderProgram::uniform3d(const char* name, double x, double y, double z) {
 	glUniform3d(getUniformLocation(name), x, y, z);
 }
-void chengine::ShaderProgram::uniform4d(const char* name, double x, double y, double z, double w) {
+void che::ShaderProgram::uniform4d(const char* name, double x, double y, double z, double w) {
 	glUniform4d(getUniformLocation(name), x, y, z, w);
 }
 
 
-chengine::ShaderProgram& chengine::operator<<(chengine::ShaderProgram& sp, const char* path) {
-    sp.pushShader(new chengine::Shader(path));
-	std::cout << "Added shader " << path << "\n";
+che::ShaderProgram& operator<<(che::ShaderProgram& sp, const char* path) {
+    sp.pushShader(new che::Shader(path));
     return sp;
 }

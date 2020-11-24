@@ -1,26 +1,28 @@
-#include "Window.hpp"
-#include "Exceptions.hpp"
+#include "Renderer/Window.hpp"
+#include "Utils/Exceptions.hpp"
+
 #include <string>
 #include <cinttypes>
+
 #include <glad/glad.h>
 
 // Window Static
-void chengine::Window::init() {
+void che::Window::init() {
     if (!glfwInit()) {
         throw glfw_error("Initialization Failed");
     }
 }
 
-void chengine::Window::terminate() {
+void che::Window::terminate() {
     glfwTerminate();
 }
 
-chengine::Window* chengine::Window::reverseLookup(GLFWwindow* window) {
+che::Window* che::Window::reverseLookup(GLFWwindow* window) {
     return s_ReverseLookupMap[window];
 }
 
 // Window Constsructors
-chengine::Window::Window(uint16_t width, uint16_t height, std::string title, WindowSettings settings) {
+che::Window::Window(uint16_t width, uint16_t height, std::string title, WindowSettings settings) {
     applySettings(settings);
     m_Width = width;
     m_Height = height;
@@ -32,7 +34,7 @@ chengine::Window::Window(uint16_t width, uint16_t height, std::string title, Win
     createWindow();
 }
 
-chengine::Window::Window(uint16_t width, uint16_t height, std::string title, WindowSettings settings, GLFWmonitor* monitor) {
+che::Window::Window(uint16_t width, uint16_t height, std::string title, WindowSettings settings, GLFWmonitor* monitor) {
     applySettings(settings);
     m_Width = width;
     m_Height = height;
@@ -44,7 +46,7 @@ chengine::Window::Window(uint16_t width, uint16_t height, std::string title, Win
     createWindow();
 }
 
-chengine::Window::Window(uint16_t width, uint16_t height, std::string title, WindowSettings settings, Window* share) {
+che::Window::Window(uint16_t width, uint16_t height, std::string title, WindowSettings settings, Window* share) {
     applySettings(settings);
     m_Width = width;
     m_Height = height;
@@ -56,7 +58,7 @@ chengine::Window::Window(uint16_t width, uint16_t height, std::string title, Win
     createWindow();
 }
 
-chengine::Window::Window(uint16_t width, uint16_t height, std::string title, WindowSettings settings, GLFWmonitor* monitor, Window* share) {
+che::Window::Window(uint16_t width, uint16_t height, std::string title, WindowSettings settings, GLFWmonitor* monitor, Window* share) {
     applySettings(settings);
     m_Width = width;
     m_Height = height;
@@ -65,17 +67,28 @@ chengine::Window::Window(uint16_t width, uint16_t height, std::string title, Win
     m_Monitor = monitor;
     m_Share = share;
     
+    createWindow();
+}
+
+che::Window::Window(che::WindowSettings settings) {
+    applySettings(settings);
+    m_Width = settings.width;
+    m_Height = settings.height;
+    m_Title = settings.title;
+    m_Monitor = settings.monitor;
+    m_Share = settings.share;
+
     createWindow();
 }
 
 // Window Operators
-chengine::Window::~Window() {
+che::Window::~Window() {
     glfwDestroyWindow(m_Window);
 }
 
 
 // Window setup
-void chengine::Window::createWindow() {
+void che::Window::createWindow() {
     if (m_Share == nullptr) {
         m_Window = glfwCreateWindow(m_Width, m_Height, m_Title.c_str(), m_Monitor, NULL);
     } else {
@@ -85,7 +98,7 @@ void chengine::Window::createWindow() {
     s_ReverseLookupMap[m_Window] = this;
 }
 
-void chengine::Window::initGLAD() {
+void che::Window::initGLAD() {
     gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
 
     if(!gladLoadGL()) {
@@ -94,7 +107,7 @@ void chengine::Window::initGLAD() {
     }
 }
 
-void chengine::Window::applySettings(WindowSettings settings) {
+void che::Window::applySettings(WindowSettings settings) {
     glfwDefaultWindowHints();
 
     if (settings.make_fullscreen) {
@@ -144,7 +157,7 @@ void chengine::Window::applySettings(WindowSettings settings) {
     glfwWindowHint(GLFW_OPENGL_PROFILE, settings.opengl_profile);
 }
 
-void chengine::Window::makeWindowedFullscreen() {
+void che::Window::makeWindowedFullscreen() {
     if (m_Monitor == NULL) {
         m_Monitor = glfwGetPrimaryMonitor();
     }
@@ -167,7 +180,7 @@ void chengine::Window::makeWindowedFullscreen() {
     }
 }
 
-void chengine::Window::makeWindowlessFullscreen() {
+void che::Window::makeWindowlessFullscreen() {
     if (m_Monitor != NULL) {
         return;
     }
@@ -180,368 +193,378 @@ void chengine::Window::makeWindowlessFullscreen() {
 }
 
 // Basic Drawing
-void chengine::Window::swapBuffers() {
+void che::Window::swapBuffers() {
     glfwSwapBuffers(m_Window);
 }
 
-void chengine::Window::setSwapInterval(int swap_interval) {
+void che::Window::setSwapInterval(int swap_interval) {
     glfwSwapInterval(swap_interval);
 }
 
 // Basic Events
-void chengine::Window::pollEvents() {
+void che::Window::pollEvents() {
     glfwPollEvents();
 }
 
-void chengine::Window::waitEvents() {
+void che::Window::waitEvents() {
     glfwWaitEvents();
 }
 
-void chengine::Window::waitEventsTimeout(double timeout) {
+void che::Window::waitEventsTimeout(double timeout) {
     glfwWaitEventsTimeout(timeout);
 }
 
-void chengine::Window::postEmptyEvent() {
+void che::Window::postEmptyEvent() {
     glfwPostEmptyEvent();
 }
 
 // Window basic input
 
-void chengine::Window::setInputMode(chengine::Input::Mode mode, int value) {
+void che::Window::setInputMode(che::Input::Mode mode, int value) {
     glfwSetInputMode(m_Window, static_cast<int>(mode), value);
 }
 
 
 // Window Key Input
 
-void chengine::Window::setKeyCallback(GLFWkeyfun function) {
+void che::Window::setKeyCallback(GLFWkeyfun function) {
     glfwSetKeyCallback(m_Window, function);
 }
 
-chengine::Input::State chengine::Window::getKeyState(int key) {
+che::Input::State che::Window::getKeyState(int key) {
     return static_cast<Input::State>(glfwGetKey(m_Window, key));
 }
 
-void chengine::Window::enableStickyKeys() {
-    setInputMode(chengine::Input::Mode::StickyKeys, GLFW_TRUE);
+void che::Window::enableStickyKeys() {
+    setInputMode(che::Input::Mode::StickyKeys, GLFW_TRUE);
 }
 
-void chengine::Window::disableStickyKeys() {
-    setInputMode(chengine::Input::Mode::StickyKeys, GLFW_FALSE);
+void che::Window::disableStickyKeys() {
+    setInputMode(che::Input::Mode::StickyKeys, GLFW_FALSE);
 }
 
-void chengine::Window::readLockKeyMods() {
-    setInputMode(chengine::Input::Mode::LockKeyMods, GLFW_TRUE);
+void che::Window::readLockKeyMods() {
+    setInputMode(che::Input::Mode::LockKeyMods, GLFW_TRUE);
 }
 
-void chengine::Window::ignoreLockKeyMods() {
-    setInputMode(chengine::Input::Mode::LockKeyMods, GLFW_FALSE);
+void che::Window::ignoreLockKeyMods() {
+    setInputMode(che::Input::Mode::LockKeyMods, GLFW_FALSE);
 }
 
-void chengine::Window::setCharCallback(GLFWcharfun callback) {
+void che::Window::setCharCallback(GLFWcharfun callback) {
     glfwSetCharCallback(m_Window, callback);
 }
 
 
 // Window Mouse Input
 
-void chengine::Window::setMouseButtonCallback(GLFWmousebuttonfun callback) {
+void che::Window::setMouseButtonCallback(GLFWmousebuttonfun callback) {
     glfwSetMouseButtonCallback(m_Window, callback);
 }
 
-chengine::Input::State chengine::Window::getMouseButton(chengine::Input::MouseButton button) {
-    return static_cast<chengine::Input::State>(glfwGetMouseButton(m_Window, static_cast<int>(button)));
+che::Input::State che::Window::getMouseButton(che::Input::MouseButton button) {
+    return static_cast<che::Input::State>(glfwGetMouseButton(m_Window, static_cast<int>(button)));
 }
 
-void chengine::Window::enableStickyMouseButtons() {
-    setInputMode(chengine::Input::Mode::StickyMouseButtons, GLFW_TRUE);
+void che::Window::enableStickyMouseButtons() {
+    setInputMode(che::Input::Mode::StickyMouseButtons, GLFW_TRUE);
 }
 
-void chengine::Window::disableStickyMouseButtons() {
-    setInputMode(chengine::Input::Mode::StickyMouseButtons, GLFW_FALSE);
+void che::Window::disableStickyMouseButtons() {
+    setInputMode(che::Input::Mode::StickyMouseButtons, GLFW_FALSE);
 }
 
 
-void chengine::Window::setCursorEnterCallback(GLFWcursorenterfun callback) {
+void che::Window::setCursorEnterCallback(GLFWcursorenterfun callback) {
     glfwSetCursorEnterCallback(m_Window, callback);
 }
 
 
-void chengine::Window::setCursorPosCallback(GLFWcursorposfun callback) {
+void che::Window::setCursorPosCallback(GLFWcursorposfun callback) {
     glfwSetCursorPosCallback(m_Window, callback);
 }
 
-void chengine::Window::getCursorPos(double *x, double *y) {
+void che::Window::getCursorPos(double *x, double *y) {
     glfwGetCursorPos(m_Window, x, y);
 }
 
 
-void chengine::Window::setScrollCallback(GLFWscrollfun callback) {
+void che::Window::setScrollCallback(GLFWscrollfun callback) {
     glfwSetScrollCallback(m_Window, callback);
 }
 
 
-void chengine::Window::setCursorMode(chengine::Input::CursorMode mode) {
-    setInputMode(chengine::Input::Mode::Cursor, static_cast<int>(mode));
+void che::Window::setCursorMode(che::Input::CursorMode mode) {
+    setInputMode(che::Input::Mode::Cursor, static_cast<int>(mode));
 }
 
-void chengine::Window::enableRawMouseMotion() {
-    setInputMode(chengine::Input::Mode::RawMouseMotion, GLFW_TRUE);
+void che::Window::enableRawMouseMotion() {
+    setInputMode(che::Input::Mode::RawMouseMotion, GLFW_TRUE);
 }
 
-void chengine::Window::disableRawMouseMotion() {
-    setInputMode(chengine::Input::Mode::StickyKeys, GLFW_FALSE);
+void che::Window::disableRawMouseMotion() {
+    setInputMode(che::Input::Mode::StickyKeys, GLFW_FALSE);
 }
 
-bool chengine::Window::isRawMouseMotionSupported() {
+bool che::Window::isRawMouseMotionSupported() {
     return glfwRawMouseMotionSupported();
 }
 
 
-void chengine::Window::setCursor(chengine::Cursor* cursor) {
+void che::Window::setCursor(che::Cursor* cursor) {
     glfwSetCursor(m_Window, cursor->m_Cursor);
 }
 
 // Clipboard
-const char* chengine::Window::getClipboardString() {
+const char* che::Window::getClipboardString() {
     return glfwGetClipboardString(m_Window);
 }
 
-void chengine::Window::setClipboardString(const char* string) {
+void che::Window::setClipboardString(const char* string) {
     glfwSetClipboardString(m_Window, string);
 }
 
 // Basic Window Info
 
-int chengine::Window::getWindowAttrib(chengine::Input::WindowAttrib attrib) {
+int che::Window::getWindowAttrib(che::Input::WindowAttrib attrib) {
     return glfwGetWindowAttrib(m_Window, static_cast<int>(attrib));
 }
 
-void chengine::Window::setWindowAttrib(Input::WindowAttrib attrib, int value) {
+void che::Window::setWindowAttrib(Input::WindowAttrib attrib, int value) {
     glfwSetWindowAttrib(m_Window, static_cast<int>(attrib), value);
 }
 
-bool chengine::Window::shouldWindowClose() {
+bool che::Window::shouldWindowClose() {
     return glfwWindowShouldClose(m_Window);
 }
 
-void chengine::Window::closeWindow() {
+void che::Window::closeWindow() {
     setWindowClose(true);
 }
 
-void chengine::Window::setWindowClose(bool value) {
+void che::Window::setWindowClose(bool value) {
     glfwSetWindowShouldClose(m_Window, value);
 }
 
-void chengine::Window::setWindowCloseCallback(GLFWwindowclosefun callback) {
+void che::Window::setWindowCloseCallback(GLFWwindowclosefun callback) {
     glfwSetWindowCloseCallback(m_Window, callback);
 }
 
-void chengine::Window::resizeWindow(int x, int y) {
+void che::Window::resizeWindow(int x, int y) {
     glfwSetWindowSize(m_Window, x, y);
 }
 
-void chengine::Window::setWindowResizeCallback(GLFWwindowsizefun callback) {
+void che::Window::setWindowResizeCallback(GLFWwindowsizefun callback) {
     glfwSetWindowSizeCallback(m_Window, callback);
 }
 
-glm::vec2 chengine::Window::getWindowSize() {
+glm::vec2 che::Window::getWindowSize() {
     glm::ivec2 s;
     getWindowSize(&(s.x), &(s.y));
     return s;
 }
 
-void chengine::Window::getWindowSize(int *x, int *y) {
+void che::Window::getWindowSize(int *x, int *y) {
     glfwGetWindowSize(m_Window,x,y);
 }
 
-void chengine::Window::getWindowFrameSize(int *left, int *top, int *right, int *bottom) {
+void che::Window::getWindowFrameSize(int *left, int *top, int *right, int *bottom) {
     glfwGetWindowFrameSize(m_Window, left, top, right, bottom);
 }
 
-void chengine::Window::setFramebufferSizeCallback(GLFWframebuffersizefun callback) {
+void che::Window::setFramebufferSizeCallback(GLFWframebuffersizefun callback) {
     glfwSetFramebufferSizeCallback(m_Window, callback);
 }
 
-glm::vec2 chengine::Window::getFramebufferSize() {
+glm::vec2 che::Window::getFramebufferSize() {
     glm::ivec2 s;
     getFramebufferSize(&(s.x),&(s.y));
     return s;
 }
 
-void chengine::Window::getFramebufferSize(int *x, int *y) {
+void che::Window::getFramebufferSize(int *x, int *y) {
     glfwGetFramebufferSize(m_Window,x,y);
 }
 
-void chengine::Window::getContentScale(float *x, float *y) {
+void che::Window::getContentScale(float *x, float *y) {
     glfwGetWindowContentScale(m_Window,x,y);
 }
 
-glm::vec2 chengine::Window::getContentScale() {
+glm::vec2 che::Window::getContentScale() {
     glm::vec2 s;
     getContentScale(&(s.x), &(s.y));
     return s;
 }
 
-void chengine::Window::setContentScaleCallback(GLFWwindowcontentscalefun callback) {
+void che::Window::setContentScaleCallback(GLFWwindowcontentscalefun callback) {
     glfwSetWindowContentScaleCallback(m_Window, callback);
 }
 
-void chengine::Window::setWindowSizeLimits(int x_min, int y_min, int x_max, int y_max) {
+void che::Window::setWindowSizeLimits(int x_min, int y_min, int x_max, int y_max) {
     glfwSetWindowSizeLimits(m_Window, x_min,y_min,x_max,y_max);
 }
 
-void chengine::Window::setAspectRatio(int x, int y) {
+void che::Window::setAspectRatio(int x, int y) {
     glfwSetWindowAspectRatio(m_Window, x,y);
 }
 
-void chengine::Window::setWindowPos(int x, int y) {
+void che::Window::setWindowPos(int x, int y) {
     glfwSetWindowPos(m_Window, x,y);
 }
 
-void chengine::Window::getWindowPos(int *x, int *y) {
+void che::Window::getWindowPos(int *x, int *y) {
     glfwGetWindowPos(m_Window, x,y);
 }
 
-glm::vec2 chengine::Window::getWindowPos() {
+glm::vec2 che::Window::getWindowPos() {
     glm::ivec2 p;
     getWindowPos(&(p.x),&(p.y));
     return p;
 }
 
-void chengine::Window::setWindowPosCallback(GLFWwindowposfun callback) {
+void che::Window::setWindowPosCallback(GLFWwindowposfun callback) {
     glfwSetWindowPosCallback(m_Window, callback);
 }
 
-void chengine::Window::setWindowTitle(const char* title) {
+void che::Window::setWindowTitle(const char* title) {
     glfwSetWindowTitle(m_Window, title);
 }
 
-void chengine::Window::setIcon(GLFWimage* icons, int count) {
+void che::Window::setIcon(GLFWimage* icons, int count) {
     glfwSetWindowIcon(m_Window, count, icons);
 }
 
-GLFWmonitor* chengine::Window::getMonitor() {
+GLFWmonitor* che::Window::getMonitor() {
     return glfwGetWindowMonitor(m_Window);
 }
 
-const GLFWvidmode* chengine::Window::getVidMode() {
+const GLFWvidmode* che::Window::getVidMode() {
     return glfwGetVideoMode(getMonitor());
 }
 
-void chengine::Window::setWindowMonitor(GLFWmonitor* monitor, int xpos, int ypos, int width, int height, int refreshrate) {
+void che::Window::setWindowMonitor(GLFWmonitor* monitor, int xpos, int ypos, int width, int height, int refreshrate) {
     glfwSetWindowMonitor(m_Window, monitor, xpos,ypos, width,height, refreshrate);
 }
 
-void chengine::Window::restoreWindow() {
+void che::Window::restoreWindow() {
     glfwRestoreWindow(m_Window);
 }
 
-void chengine::Window::iconify() {
+void che::Window::iconify() {
     glfwIconifyWindow(m_Window);
 }
 
-void chengine::Window::setIconifyCallback(GLFWwindowiconifyfun callback) {
+void che::Window::setIconifyCallback(GLFWwindowiconifyfun callback) {
     glfwSetWindowIconifyCallback(m_Window, callback);
 }
 
-void chengine::Window::maximize() {
+void che::Window::maximize() {
     glfwMaximizeWindow(m_Window);
 }
 
-void chengine::Window::setMaximizeCallback(GLFWwindowmaximizefun callback) {
+void che::Window::setMaximizeCallback(GLFWwindowmaximizefun callback) {
     glfwSetWindowMaximizeCallback(m_Window, callback);
 }
 
-void chengine::Window::hide() {
+void che::Window::hide() {
     glfwHideWindow(m_Window);
 }
 
-void chengine::Window::show() {
+void che::Window::show() {
     glfwShowWindow(m_Window);
 }
 
-bool chengine::Window::isVisible() {
-    return getWindowAttrib(chengine::Input::WindowAttrib::Visible);
+bool che::Window::isVisible() {
+    return getWindowAttrib(che::Input::WindowAttrib::Visible);
 }
 
-void chengine::Window::focus() {
+void che::Window::focus() {
     glfwFocusWindow(m_Window);
 }
 
-void chengine::Window::setFocusCallback(GLFWwindowfocusfun callback) {
+void che::Window::setFocusCallback(GLFWwindowfocusfun callback) {
     glfwSetWindowFocusCallback(m_Window,callback);
 }
 
-bool chengine::Window::isFocused() {
-    return getWindowAttrib(chengine::Input::WindowAttrib::Focused);
+bool che::Window::isFocused() {
+    return getWindowAttrib(che::Input::WindowAttrib::Focused);
 }
 
-void chengine::Window::requestAttention() {
+void che::Window::requestAttention() {
     glfwRequestWindowAttention(m_Window);
 }
 
-void chengine::Window::setRefreshCallback(GLFWwindowrefreshfun callback) {
+void che::Window::setRefreshCallback(GLFWwindowrefreshfun callback) {
     glfwSetWindowRefreshCallback(m_Window, callback);
 }
 
-void chengine::Window::setOpacity(float opacity) {
+void che::Window::setOpacity(float opacity) {
     glfwSetWindowOpacity(m_Window,opacity);
 }
 
-float chengine::Window::getOpacity() {
+float che::Window::getOpacity() {
     return glfwGetWindowOpacity(m_Window);
 }
 
-void chengine::Window::setUserPointer(void* ptr) {
+void che::Window::setUserPointer(void* ptr) {
     glfwSetWindowUserPointer(m_Window, ptr);
 }
 
-void* chengine::Window::getUserPointer() {
+void* che::Window::getUserPointer() {
     return glfwGetWindowUserPointer(m_Window);
 }
 
-void chengine::Window::makeContextCurrent() {
+void che::Window::makeContextCurrent() {
     glfwMakeContextCurrent(m_Window);
 }
 
-chengine::Window* chengine::Window::getCurrentContext() {
+che::Window* che::Window::getCurrentContext() {
     return reverseLookup(glfwGetCurrentContext());
 }
 
+void che::Window::enableDebugOutput(GLDEBUGPROC gldo) {
+    int flags; glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+    if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
+    {
+        glEnable(GL_DEBUG_OUTPUT);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS); 
+        glDebugMessageCallback(gldo, nullptr);
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+    } 
+}
 
 // Basic windowless input functions
 
-const int chengine::Input::getScancode(int key) {
+const int che::Input::getScancode(int key) {
     return glfwGetKeyScancode(key);
 }
 
-const char* chengine::Input::getKeyName(int key, int scancode) {
+const char* che::Input::getKeyName(int key, int scancode) {
     return glfwGetKeyName(key, scancode);
 }
 
-double chengine::Input::getTime() {
+double che::Input::getTime() {
     return glfwGetTime();
 }
 
-void chengine::Input::setTime(double newTime) {
+void che::Input::setTime(double newTime) {
     glfwSetTime(newTime);
 }
 
-uint64_t chengine::Input::getTimerValue() {
+uint64_t che::Input::getTimerValue() {
     return glfwGetTimerFrequency();
 }
 
-uint64_t chengine::Input::getTimerFrequency() {
+uint64_t che::Input::getTimerFrequency() {
     return glfwGetTimerFrequency();
 }
 
 // System Clipboard
-const char* chengine::Input::getSystemClipboardString() {
+const char* che::Input::getSystemClipboardString() {
     return glfwGetClipboardString(NULL);
 }
 
-void chengine::Input::setSystemClipboardString(const char* string) {
+void che::Input::setSystemClipboardString(const char* string) {
     glfwSetClipboardString(NULL, string);
 }
 
@@ -549,7 +572,7 @@ void chengine::Input::setSystemClipboardString(const char* string) {
 
 // Cursor Class
 
-chengine::Cursor::Cursor(unsigned char* pixels, int width, int height, int x_hot, int y_hot) {
+che::Cursor::Cursor(unsigned char* pixels, int width, int height, int x_hot, int y_hot) {
     GLFWimage image;
     image.pixels = pixels;
     image.width = width;
@@ -558,58 +581,58 @@ chengine::Cursor::Cursor(unsigned char* pixels, int width, int height, int x_hot
     m_Cursor = glfwCreateCursor(&image, x_hot, y_hot);
 }
 
-chengine::Cursor::Cursor(int standard_type) {
+che::Cursor::Cursor(int standard_type) {
     m_Cursor = glfwCreateStandardCursor(standard_type);
 }
 
-chengine::Cursor::~Cursor() {
+che::Cursor::~Cursor() {
     glfwDestroyCursor(m_Cursor);
 }
 
 // Joystick Class
-chengine::Input::Joystick::Joystick(unsigned int id) : m_JoystickId(id) {
+che::Input::Joystick::Joystick(unsigned int id) : m_JoystickId(id) {
 }
 
-chengine::Input::JoyAxisValues chengine::Input::Joystick::getAxes() {
+che::Input::JoyAxisValues che::Input::Joystick::getAxes() {
     JoyAxisValues values;
     values.values = glfwGetJoystickAxes(m_JoystickId, &(values.count));
     return values;
 }
 
-chengine::Input::JoyButtonValues chengine::Input::Joystick::getButtons() {
+che::Input::JoyButtonValues che::Input::Joystick::getButtons() {
     JoyButtonValues values;
     values.buttons = glfwGetJoystickButtons(m_JoystickId, &(values.count));
     return values;
 }
 
-chengine::Input::JoyHatValues chengine::Input::Joystick::getHats() {
+che::Input::JoyHatValues che::Input::Joystick::getHats() {
     JoyHatValues values;
     values.hats = glfwGetJoystickHats(m_JoystickId, &(values.count));
     return values;
 }
 
 
-const char* chengine::Input::Joystick::getName() {
+const char* che::Input::Joystick::getName() {
     return glfwGetJoystickName(m_JoystickId);
 }
 
-void chengine::Input::Joystick::setConfigurationCallback(GLFWjoystickfun callback) {
+void che::Input::Joystick::setConfigurationCallback(GLFWjoystickfun callback) {
     glfwSetJoystickCallback(callback);
 }
 
 // Gamepad Class
 
-chengine::Input::Gamepad::Gamepad(unsigned int id) : chengine::Input::Joystick::Joystick(id) {
+che::Input::Gamepad::Gamepad(unsigned int id) : che::Input::Joystick::Joystick(id) {
     if (!glfwJoystickIsGamepad(id)) {
         throw glfw_error(("Joystick " + std::to_string(id) + " is not a valid gamepad").c_str());
     }
 }
 
-const char* chengine::Input::Gamepad::getName() {
+const char* che::Input::Gamepad::getName() {
     return glfwGetGamepadName(m_JoystickId);
 }
 
-GLFWgamepadstate chengine::Input::Gamepad::getState() {
+GLFWgamepadstate che::Input::Gamepad::getState() {
     GLFWgamepadstate ret;
     glfwGetGamepadState(m_JoystickId, &ret);
     return ret;

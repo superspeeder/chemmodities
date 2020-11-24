@@ -1,12 +1,13 @@
 #pragma once
-#include "glad/glad.h"
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/vec2.hpp>
+
 #include <string>
 #include <cinttypes>
 #include <unordered_map>
-#include <glm/vec2.hpp>
 
-namespace chengine {
+namespace che {
     class Cursor {
         friend class Window;
         private:
@@ -177,6 +178,11 @@ namespace chengine {
 
         FullScreenMode fullScreenMode = WINDOWED;
         bool make_fullscreen = false;
+
+        unsigned int width, height;
+        std::string title;
+        GLFWmonitor* monitor = NULL;
+        Window* share = nullptr;
     };
 
     class Window {
@@ -205,6 +211,8 @@ namespace chengine {
         Window(uint16_t width, uint16_t height, std::string title, WindowSettings settings, GLFWmonitor* monitor);
         Window(uint16_t width, uint16_t height, std::string title, WindowSettings settings, Window* share);
         Window(uint16_t width, uint16_t height, std::string title, WindowSettings settings, GLFWmonitor* monitor, Window* share);
+        
+        Window(WindowSettings settings);
 
         // Special Functions and Operators
         ~Window();
@@ -225,7 +233,7 @@ namespace chengine {
         void postEmptyEvent();
 
         // Basic Input
-        void setInputMode(chengine::Input::Mode mode, int value);
+        void setInputMode(che::Input::Mode mode, int value);
 
         // Key Input
         void setKeyCallback(GLFWkeyfun function);
@@ -341,5 +349,7 @@ namespace chengine {
 
         void makeContextCurrent();
         static Window* getCurrentContext();
+
+        void enableDebugOutput(GLDEBUGPROC gldo);
     };
 }

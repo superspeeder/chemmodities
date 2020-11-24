@@ -1,7 +1,7 @@
 project(Game LANGUAGES CXX)
 
 set(SOURCES
-    src/main.cpp
+    src/Main.cpp
 )
 
 add_executable(Game ${SOURCES})

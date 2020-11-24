@@ -1,0 +1,74 @@
+{
+    "components": {
+        "buffers": [
+            ":vertex.implicit",
+            "index"
+        ],
+        "vao": {
+            "attribs": [
+                0,1
+            ]
+        },
+        "use_ibo": true,
+        "ibo": "index"
+    },
+
+    "buffer": {
+        "vertex": {
+            "vboPosition": {
+                "mode": "static-draw",
+                "data": [
+                    -1, 1,0,
+                     0, 1,0,
+                     1, 1,0,
+                    -1, 0,0,
+                     0, 0,0,
+                     1, 0,0,
+                    -1,-1,0,
+                     0,-1,0,
+                     1,-1,0
+                ]
+            },
+            "vboColor": {
+                "mode": "static-draw",
+                "data": [
+                    1,1,1,1,
+                    1,0,0,1,
+                    1,1,1,1,
+                    0,1,0,1,
+                    0,0,0,1,
+                    0,0,1,1,
+                    1,1,1,1,
+                    1,0,1,1,
+                    1,1,1,1
+                ]
+            }
+        },
+        "index": {
+            "mode": "static-draw",
+            "data": {
+
+            }
+        }
+    },
+    "vertexarray": {
+        "attributes": {
+            "0": {
+                "target": "vboPosition",
+                "vertexsize": 3,
+                "stride": 3,
+                "type": "float",
+                "offset": 0,
+                "normalize": false
+            },
+            "1": {
+                "target": "vboColor",
+                "vertexsize": 4,
+                "stride": 4,
+                "type": "float",
+                "offset": 0,
+                "normalize": false
+            }
+        }
+    }
+}
