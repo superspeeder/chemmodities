@@ -53,11 +53,6 @@ void APIENTRY glDebugOutput(GLenum source,
 
 int main() {
 
-
-
-
-    std::cout << "FUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUCK\n";
-
     if (!glfwInit()) {
         std::cerr << "cry :(((";
         return -1;
@@ -65,7 +60,7 @@ int main() {
 
     GLFWwindow *window;
 
-    window = glfwCreateWindow(900,900, "The Cumsocket", NULL, NULL);
+    window = glfwCreateWindow(900,900, "The Cumsocket 2", NULL, NULL);
 
     if (!window) {
         std::cerr << "even more cry :((((((";
@@ -74,9 +69,6 @@ int main() {
     }
 
     glfwMakeContextCurrent(window);
-
-    if ()
-
 
     // int flags; glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
     // if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
