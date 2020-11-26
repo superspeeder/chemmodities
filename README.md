@@ -1,16 +1,10 @@
 ![chemmodities](/doc/chem.png)
 # chemmodities
-Chemmodities True Version. Particle Simulated Chemistry inspired by Noita
+Chemmodities True Version. Particle Simulated Chemistry inspired by Noita (ON HOLD WHILE WE FIGURE OUT HOW TO *ACTUALLY* DO RENDERING)
 
 ## Building From Source
 
-Building requires 7zip and cmake.
-
-Run `scripts/write_config.py` with python 3.x and follow the prompts.
-
-Next, make sure the working directory of the terminal is in the `scripts` folder. After doing that, run either `build_all.bat` or `clean_build_all.bat`. Normal `build_all.bat` doesn't clean the build directory, but `clean_build_all.bat` will.
-
-The output goes into the `output` folder, which is zipped into `game.zip`
+Build the cmake game target. So far only will work on Windows. old build system broke/was taking more work than it was worth.
 
 ## Future Additions
 
